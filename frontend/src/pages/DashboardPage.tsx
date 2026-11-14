@@ -12,11 +12,13 @@ import {
   Award,
   Layers,
   Flame,
+  TrendingUp,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { CareerBlueprintCard } from '@/components/career/CareerBlueprintCard';
 import { useLearner } from '@/context/LearnerContext';
 
 export const DashboardPage: React.FC = () => {
@@ -52,25 +54,25 @@ export const DashboardPage: React.FC = () => {
     <div className="max-w-[1400px] mx-auto space-y-8">
       {/* Storage Mode Notice */}
       {storageStatus?.mode === 'memory' && (
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs sm:text-sm text-amber-600 dark:text-amber-400 flex items-center justify-between gap-3">
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs sm:text-sm text-amber-700 dark:text-amber-400 flex items-center justify-between gap-3 shadow-xs">
           <div className="flex items-center gap-2.5">
-            <Info className="h-4 w-4 shrink-0 text-amber-500" />
+            <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
             <span>
               <strong>Temporary demo session:</strong> In-memory storage is active. Learner progress is preserved in this browser session but resets when the backend server restarts.
             </span>
           </div>
-          <span className="font-mono text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300">
+          <span className="font-mono text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-800 dark:text-amber-300">
             mode: memory
           </span>
         </div>
       )}
 
       {/* TOP SECTION: Large Heading & Career Target Bar */}
-      <section className="border-b border-[#E5E5E5] dark:border-[#222222] pb-6 space-y-4">
+      <section className="border-b border-[#E5E7EB] dark:border-[#222222] pb-6 space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2">
-              <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#171717] dark:text-[#FAFAFA]">
+              <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#111827] dark:text-[#FAFAFA]">
                 {learner?.full_name ? `${learner.full_name}'s Workspace` : 'Maximus Overview'}
               </h1>
               {learner && (
@@ -79,7 +81,7 @@ export const DashboardPage: React.FC = () => {
                 </Badge>
               )}
             </div>
-            <p className="text-sm sm:text-base text-[#737373] dark:text-[#A3A3A3] max-w-2xl leading-relaxed">
+            <p className="text-sm sm:text-base text-[#6B7280] dark:text-[#A3A3A3] max-w-2xl leading-relaxed">
               Discover what you know. Prove what you can do. Build what comes next.
             </p>
           </div>
@@ -95,12 +97,14 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         {/* Current Career Target Status Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-[#E5E5E5] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#080808] px-5 py-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-[#E5E7EB] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#080808] px-5 py-4 shadow-xs">
           <div className="flex items-center gap-3">
-            <Compass className="h-5 w-5 text-[#7C3AED] dark:text-[#8B5CF6] shrink-0" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#8B5CF6]">
+              <Compass className="h-5 w-5" />
+            </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs sm:text-sm text-[#737373] dark:text-[#888888]">Target Trajectory:</span>
-              <span className="text-xs sm:text-sm font-semibold text-[#171717] dark:text-[#FAFAFA]">
+              <span className="text-xs sm:text-sm text-[#6B7280] dark:text-[#888888]">Target Trajectory:</span>
+              <span className="text-xs sm:text-sm font-semibold text-[#111827] dark:text-[#FAFAFA]">
                 {targetCareer || 'No Career Target Configured'}
               </span>
               {!targetCareer && (
@@ -111,22 +115,29 @@ export const DashboardPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-5 text-xs sm:text-sm text-[#737373] dark:text-[#888888]">
+          <div className="flex items-center gap-6 text-xs sm:text-sm text-[#6B7280] dark:text-[#888888]">
             <span>
               Verified Skills:{' '}
-              <strong className="text-[#171717] dark:text-[#FAFAFA] font-medium font-mono">
+              <strong className="text-[#111827] dark:text-[#FAFAFA] font-medium font-mono">
                 {verifiedSkillsCount}
               </strong>
             </span>
             <span>
               Readiness Score:{' '}
-              <strong className="text-[#171717] dark:text-[#FAFAFA] font-medium font-mono">
+              <strong className="text-[#111827] dark:text-[#FAFAFA] font-medium font-mono">
                 {readinessScore !== null ? `${readinessScore}%` : 'Unassessed'}
               </strong>
             </span>
           </div>
         </div>
       </section>
+
+      {/* CAREER BLUEPRINT SECTION */}
+      {learner && (
+        <section>
+          <CareerBlueprintCard />
+        </section>
+      )}
 
       {/* MAIN SECTION: 65% / 35% Asymmetric Composition */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -136,7 +147,10 @@ export const DashboardPage: React.FC = () => {
             <CardHeader className="p-6 pb-2">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-xl font-semibold">Career Readiness Overview</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-[#7C3AED] dark:text-[#8B5CF6]" />
+                    <CardTitle className="text-xl font-semibold">Career Readiness Overview</CardTitle>
+                  </div>
                   <CardDescription className="text-sm mt-1">
                     Objective benchmarking against industry engineering standards
                   </CardDescription>
@@ -153,11 +167,11 @@ export const DashboardPage: React.FC = () => {
               {readinessScore !== null ? (
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <div className="flex justify-between text-xs text-[#737373] dark:text-[#888888]">
+                    <div className="flex justify-between text-xs text-[#6B7280] dark:text-[#888888]">
                       <span>Target Alignment: {targetCareer}</span>
                       <span>{assessmentResult?.correct} of {assessmentResult?.total} challenges passed</span>
                     </div>
-                    <div className="w-full bg-[#E5E5E5] dark:bg-[#222222] h-3 rounded-full overflow-hidden">
+                    <div className="w-full bg-[#E5E7EB] dark:bg-[#222222] h-3 rounded-full overflow-hidden">
                       <div
                         className="bg-[#7C3AED] dark:bg-[#8B5CF6] h-full rounded-full transition-all duration-500"
                         style={{ width: `${readinessScore}%` }}
@@ -166,18 +180,18 @@ export const DashboardPage: React.FC = () => {
                   </div>
 
                   {assessmentResult?.evidence_note && (
-                    <div className="p-3.5 rounded-lg border border-[#E5E5E5] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#0A0A0A] text-xs text-[#737373] dark:text-[#A3A3A3] space-y-1">
-                      <span className="font-semibold text-[#171717] dark:text-[#FAFAFA]">Assessment Evidence Note:</span>
-                      <p>{assessmentResult.evidence_note}</p>
+                    <div className="p-4 rounded-xl border border-[#E5E7EB] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#0A0A0A] text-xs text-[#6B7280] dark:text-[#A3A3A3] space-y-1">
+                      <span className="font-semibold text-[#111827] dark:text-[#FAFAFA]">Assessment Evidence Note:</span>
+                      <p className="leading-relaxed">{assessmentResult.evidence_note}</p>
                     </div>
                   )}
 
                   {strengths.length > 0 && (
                     <div className="space-y-2">
-                      <span className="text-xs font-semibold text-[#171717] dark:text-[#FAFAFA]">Demonstrated Strengths:</span>
+                      <span className="text-xs font-semibold text-[#111827] dark:text-[#FAFAFA]">Demonstrated Strengths (≥70% Score):</span>
                       <div className="flex flex-wrap gap-2">
                         {strengths.map((str, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30">
+                          <Badge key={idx} variant="success" className="text-xs">
                             {str}
                           </Badge>
                         ))}
@@ -202,21 +216,21 @@ export const DashboardPage: React.FC = () => {
 
         {/* Secondary Panel (35% width) - Recommended Next Step */}
         <div className="lg:col-span-4">
-          <div className="h-full rounded-lg border border-[#E5E5E5] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#0D0D0D] p-6 flex flex-col justify-between space-y-6">
+          <div className="h-full rounded-xl border border-[#E5E7EB] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#0D0D0D] p-6 flex flex-col justify-between space-y-6 shadow-xs">
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-[#7C3AED] dark:bg-[#8B5CF6]" />
-                <span className="text-xs font-mono uppercase tracking-wider text-[#8C8C8C] dark:text-[#666666]">
+                <span className="text-xs font-mono uppercase tracking-wider text-[#9CA3AF] dark:text-[#666666]">
                   Recommended Next Step
                 </span>
               </div>
 
               {!learner ? (
                 <>
-                  <h2 className="text-lg font-semibold text-[#171717] dark:text-[#FAFAFA] tracking-tight">
+                  <h2 className="text-lg font-semibold text-[#111827] dark:text-[#FAFAFA] tracking-tight">
                     Calibrate Career Trajectory
                   </h2>
-                  <p className="text-sm text-[#737373] dark:text-[#A3A3A3] leading-relaxed">
+                  <p className="text-sm text-[#6B7280] dark:text-[#A3A3A3] leading-relaxed">
                     Set up your learner profile and target technical role to unlock personalized roadmaps and assessments.
                   </p>
                   <div className="pt-2">
@@ -230,10 +244,10 @@ export const DashboardPage: React.FC = () => {
                 </>
               ) : !assessmentResult ? (
                 <>
-                  <h2 className="text-lg font-semibold text-[#171717] dark:text-[#FAFAFA] tracking-tight">
+                  <h2 className="text-lg font-semibold text-[#111827] dark:text-[#FAFAFA] tracking-tight">
                     Take Baseline Assessment
                   </h2>
-                  <p className="text-sm text-[#737373] dark:text-[#A3A3A3] leading-relaxed">
+                  <p className="text-sm text-[#6B7280] dark:text-[#A3A3A3] leading-relaxed">
                     Take the AI-generated assessment in Skill Arena. Your answers establish verified competencies and reveal gap priorities.
                   </p>
                   <div className="pt-2">
@@ -247,10 +261,10 @@ export const DashboardPage: React.FC = () => {
                 </>
               ) : !roadmap ? (
                 <>
-                  <h2 className="text-lg font-semibold text-[#171717] dark:text-[#FAFAFA] tracking-tight">
+                  <h2 className="text-lg font-semibold text-[#111827] dark:text-[#FAFAFA] tracking-tight">
                     Generate Adaptive Roadmap
                   </h2>
-                  <p className="text-sm text-[#737373] dark:text-[#A3A3A3] leading-relaxed">
+                  <p className="text-sm text-[#6B7280] dark:text-[#A3A3A3] leading-relaxed">
                     Transform your assessment results into an adaptive, step-by-step competency curriculum in Career Navigator.
                   </p>
                   <div className="pt-2">
@@ -264,10 +278,10 @@ export const DashboardPage: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <h2 className="text-lg font-semibold text-[#171717] dark:text-[#FAFAFA] tracking-tight">
+                  <h2 className="text-lg font-semibold text-[#111827] dark:text-[#FAFAFA] tracking-tight">
                     {activeStep ? activeStep.title : 'Roadmap In Progress'}
                   </h2>
-                  <p className="text-sm text-[#737373] dark:text-[#A3A3A3] leading-relaxed">
+                  <p className="text-sm text-[#6B7280] dark:text-[#A3A3A3] leading-relaxed">
                     {activeStep
                       ? activeStep.objective
                       : `${completedStepsCount} of ${totalStepsCount} milestones achieved.`}
@@ -297,21 +311,21 @@ export const DashboardPage: React.FC = () => {
           </CardHeader>
           <CardContent className="flex-1 flex flex-col justify-center">
             {activeStep ? (
-              <div className="p-4 rounded-md border border-[#E5E5E5] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#080808] space-y-2">
+              <div className="p-4 rounded-xl border border-[#E5E7EB] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#080808] space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-mono uppercase text-[#7C3AED] dark:text-[#8B5CF6]">
                     {activeStep.skill}
                   </span>
-                  <span className="text-xs text-[#8C8C8C] dark:text-[#666666]">
+                  <span className="text-xs text-[#9CA3AF] dark:text-[#666666]">
                     ~{activeStep.estimated_hours}h
                   </span>
                 </div>
-                <p className="text-sm font-semibold text-[#171717] dark:text-[#FAFAFA]">{activeStep.title}</p>
-                <p className="text-xs text-[#737373] dark:text-[#A3A3A3] line-clamp-2">{activeStep.practice_task}</p>
+                <p className="text-sm font-semibold text-[#111827] dark:text-[#FAFAFA]">{activeStep.title}</p>
+                <p className="text-xs text-[#6B7280] dark:text-[#A3A3A3] line-clamp-2">{activeStep.practice_task}</p>
               </div>
             ) : (
               <div className="space-y-4 py-2">
-                <p className="text-sm text-[#737373] dark:text-[#A3A3A3] leading-relaxed">
+                <p className="text-sm text-[#6B7280] dark:text-[#A3A3A3] leading-relaxed">
                   {roadmap
                     ? 'All active milestones completed! Retake assessment or calibrate a higher role.'
                     : 'Milestones are dynamically generated after calibrating your career target and taking an assessment.'}
@@ -337,9 +351,9 @@ export const DashboardPage: React.FC = () => {
             {competencyGaps.length > 0 ? (
               <div className="space-y-2">
                 {competencyGaps.map((gap, i) => (
-                  <div key={i} className="flex items-center justify-between text-xs py-1.5 border-b border-[#E5E5E5] dark:border-[#222222]">
-                    <span className="text-[#171717] dark:text-[#FAFAFA] font-medium">{gap}</span>
-                    <Badge variant="outline" className="text-amber-600 dark:text-amber-400 border-amber-500/30">
+                  <div key={i} className="flex items-center justify-between text-xs py-2 border-b border-[#E5E7EB] dark:border-[#222222]">
+                    <span className="text-[#111827] dark:text-[#FAFAFA] font-medium">{gap}</span>
+                    <Badge variant="outline" className="text-amber-700 dark:text-amber-400 border-amber-500/30">
                       Gap Priority
                     </Badge>
                   </div>
@@ -347,7 +361,7 @@ export const DashboardPage: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-4 py-2">
-                <p className="text-sm text-[#737373] dark:text-[#A3A3A3] leading-relaxed">
+                <p className="text-sm text-[#6B7280] dark:text-[#A3A3A3] leading-relaxed">
                   {learner
                     ? 'No gaps benchmarked yet. Complete an initial assessment in Skill Arena.'
                     : 'Configure a career target in Onboarding to generate verified competency gaps against market requirements.'}
@@ -371,22 +385,22 @@ export const DashboardPage: React.FC = () => {
           </CardHeader>
           <CardContent className="flex-1 flex flex-col justify-center">
             <div className="space-y-4 py-2">
-              <div className="flex items-center gap-2.5 text-sm text-[#737373] dark:text-[#A3A3A3]">
+              <div className="flex items-center gap-2.5 text-sm text-[#6B7280] dark:text-[#A3A3A3]">
                 {assessmentResult ? (
                   <>
                     <Award className="h-5 w-5 text-emerald-500 shrink-0" />
-                    <span className="font-medium text-[#171717] dark:text-[#FAFAFA]">
+                    <span className="font-medium text-[#111827] dark:text-[#FAFAFA]">
                       1 assessment submitted ({assessmentResult.score}% score)
                     </span>
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 className="h-4 w-4 text-[#8C8C8C] dark:text-[#666666] shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-[#9CA3AF] dark:text-[#666666] shrink-0" />
                     <span>0 assessments completed</span>
                   </>
                 )}
               </div>
-              <p className="text-xs text-[#8C8C8C] dark:text-[#666666] leading-relaxed">
+              <p className="text-xs text-[#9CA3AF] dark:text-[#666666] leading-relaxed">
                 Completed challenges in Skill Arena receive immutable evaluation proofs stored on the backend.
               </p>
               <NavLink
@@ -410,10 +424,10 @@ export const DashboardPage: React.FC = () => {
                 Real engineering positions from external feeds
               </CardDescription>
             </div>
-            <Briefcase className="h-5 w-5 text-[#8C8C8C] dark:text-[#666666]" />
+            <Briefcase className="h-5 w-5 text-[#9CA3AF] dark:text-[#666666]" />
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-[#737373] dark:text-[#A3A3A3] leading-relaxed">
+            <p className="text-sm text-[#6B7280] dark:text-[#A3A3A3] leading-relaxed">
               Explore live verified positions from Himalayas and Remotive matched to your target competencies. Zero synthetic jobs are displayed.
             </p>
             <NavLink
@@ -433,10 +447,10 @@ export const DashboardPage: React.FC = () => {
                 Targeted curriculum & official documentation
               </CardDescription>
             </div>
-            <BookOpen className="h-5 w-5 text-[#8C8C8C] dark:text-[#666666]" />
+            <BookOpen className="h-5 w-5 text-[#9CA3AF] dark:text-[#666666]" />
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-[#737373] dark:text-[#A3A3A3] leading-relaxed">
+            <p className="text-sm text-[#6B7280] dark:text-[#A3A3A3] leading-relaxed">
               Review official documentation benchmarks and structured modules from MIT OCW, freeCodeCamp, and YouTube.
             </p>
             <NavLink
@@ -456,10 +470,10 @@ export const DashboardPage: React.FC = () => {
                 Context-aware guidance on your roadmap
               </CardDescription>
             </div>
-            <Flame className="h-5 w-5 text-[#8C8C8C] dark:text-[#666666]" />
+            <Flame className="h-5 w-5 text-[#9CA3AF] dark:text-[#666666]" />
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-[#737373] dark:text-[#A3A3A3] leading-relaxed">
+            <p className="text-sm text-[#6B7280] dark:text-[#A3A3A3] leading-relaxed">
               Ask technical questions, request milestone hints, or debug challenges with your agentic career mentor.
             </p>
             <NavLink

@@ -13,7 +13,7 @@ export const Badge: React.FC<BadgeProps> = ({
 }) => {
   const variants = {
     default:
-      'bg-[#F7F7F7] dark:bg-[#161616] text-[#666666] dark:text-[#A3A3A3] border-[#E5E5E5] dark:border-[#262626]',
+      'bg-[#F9FAFB] dark:bg-[#161616] text-[#4B5563] dark:text-[#A3A3A3] border-[#E5E7EB] dark:border-[#262626]',
     accent:
       'bg-[#7C3AED]/10 dark:bg-[#8B5CF6]/15 text-[#7C3AED] dark:text-[#A78BFA] border-[#7C3AED]/20 dark:border-[#8B5CF6]/30',
     cyan:
@@ -23,13 +23,13 @@ export const Badge: React.FC<BadgeProps> = ({
     warning:
       'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20',
     outline:
-      'border-[#E5E5E5] dark:border-[#222222] text-[#666666] dark:text-[#A3A3A3] bg-transparent',
+      'border-[#E5E7EB] dark:border-[#222222] text-[#6B7280] dark:text-[#A3A3A3] bg-transparent',
   };
 
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-[11px] font-mono font-medium tracking-tight transition-colors',
+        'inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[11px] font-mono font-medium tracking-tight transition-colors',
         variants[variant],
         className
       )}

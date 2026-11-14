@@ -40,25 +40,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse })
   return (
     <aside
       className={cn(
-        'hidden lg:flex flex-col border-r border-[#E5E5E5] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#050505] transition-all duration-200 select-none z-20 shrink-0',
+        'hidden lg:flex flex-col border-r border-[#E5E7EB] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#050505] transition-all duration-200 select-none z-20 shrink-0',
         collapsed ? 'w-16' : 'w-[240px]'
       )}
     >
       {/* Brand Header */}
-      <div className="flex h-16 items-center justify-between px-4 border-b border-[#E5E5E5] dark:border-[#222222]">
+      <div className="flex h-16 items-center justify-between px-4 border-b border-[#E5E7EB] dark:border-[#222222]">
         <NavLink
           to="/dashboard"
           className="flex items-center gap-3 focus-visible:outline-none overflow-hidden"
           title="Maximus Home"
         >
           {/* Refined Geometric Monogram */}
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#171717] dark:bg-[#FAFAFA] text-white dark:text-[#0A0A0A] shadow-xs">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#111827] dark:bg-[#FAFAFA] text-white dark:text-[#0A0A0A] shadow-xs">
             <span className="font-semibold text-xs tracking-tight">M</span>
           </div>
 
           {!collapsed && (
             <div className="flex flex-col min-w-0">
-              <span className="font-semibold text-base tracking-tight text-[#171717] dark:text-[#FAFAFA]">
+              <span className="font-semibold text-base tracking-tight text-[#111827] dark:text-[#FAFAFA]">
                 Maximus
               </span>
             </div>
@@ -70,7 +70,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse })
             onClick={onToggleCollapse}
             aria-label="Collapse sidebar"
             title="Collapse sidebar"
-            className="flex h-8 w-8 items-center justify-center rounded-md text-[#666666] dark:text-[#A3A3A3] hover:text-[#171717] dark:hover:text-[#FAFAFA] hover:bg-[#EFEFEF] dark:hover:bg-[#161616] transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-[#6B7280] dark:text-[#A3A3A3] hover:text-[#111827] dark:hover:text-[#FAFAFA] hover:bg-[#F3F4F6] dark:hover:bg-[#161616] transition-colors cursor-pointer"
           >
             <PanelLeftClose className="h-4 w-4" />
           </button>
@@ -80,7 +80,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse })
       {/* Main Navigation Links */}
       <nav className="flex-1 space-y-1.5 p-3 overflow-y-auto">
         {!collapsed && (
-          <div className="px-3 pt-2 pb-1.5 text-xs font-medium uppercase tracking-wider text-[#8C8C8C] dark:text-[#666666]">
+          <div className="px-3 pt-2 pb-1.5 text-xs font-medium uppercase tracking-wider text-[#9CA3AF] dark:text-[#666666]">
             Platform
           </div>
         )}
@@ -94,11 +94,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse })
               title={collapsed ? item.name : undefined}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 rounded-md py-2.5 text-sm font-medium transition-colors duration-150 relative group',
+                  'flex items-center gap-3 rounded-lg py-2.5 text-sm font-medium transition-colors duration-150 relative group',
                   collapsed ? 'justify-center px-2' : 'px-3',
                   isActive
-                    ? 'bg-[#EFEFEF] dark:bg-[#151515] text-[#171717] dark:text-[#FAFAFA]'
-                    : 'text-[#666666] dark:text-[#A3A3A3] hover:text-[#171717] dark:hover:text-[#FAFAFA] hover:bg-[#F2F2F2] dark:hover:bg-[#0E0E0E]'
+                    ? 'bg-[#F3F4F6] dark:bg-[#151515] text-[#111827] dark:text-[#FAFAFA]'
+                    : 'text-[#6B7280] dark:text-[#A3A3A3] hover:text-[#111827] dark:hover:text-[#FAFAFA] hover:bg-[#F3F4F6] dark:hover:bg-[#0E0E0E]'
                 )
               }
             >
@@ -109,7 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse })
                       'h-4 w-4 shrink-0 transition-colors',
                       isActive
                         ? 'text-[#7C3AED] dark:text-[#8B5CF6]'
-                        : 'text-[#8C8C8C] dark:text-[#666666] group-hover:text-[#171717] dark:group-hover:text-[#FAFAFA]'
+                        : 'text-[#9CA3AF] dark:text-[#666666] group-hover:text-[#111827] dark:group-hover:text-[#FAFAFA]'
                     )}
                   />
                   {!collapsed && <span className="truncate">{item.name}</span>}
@@ -124,13 +124,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse })
       </nav>
 
       {/* Footer Controls */}
-      <div className="p-3 border-t border-[#E5E5E5] dark:border-[#222222] space-y-2">
+      <div className="p-3 border-t border-[#E5E7EB] dark:border-[#222222] space-y-2">
         {/* Onboarding / Career Setup Shortcut */}
         <NavLink
           to="/onboarding"
           title={collapsed ? 'Target Calibration' : undefined}
           className={cn(
-            'flex items-center gap-2.5 rounded-md p-2.5 text-xs text-[#666666] dark:text-[#A3A3A3] hover:text-[#171717] dark:hover:text-[#FAFAFA] hover:bg-[#F2F2F2] dark:hover:bg-[#0E0E0E] transition-colors',
+            'flex items-center gap-2.5 rounded-lg p-2.5 text-xs text-[#6B7280] dark:text-[#A3A3A3] hover:text-[#111827] dark:hover:text-[#FAFAFA] hover:bg-[#F3F4F6] dark:hover:bg-[#0E0E0E] transition-colors',
             collapsed ? 'justify-center' : ''
           )}
         >
@@ -152,7 +152,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse })
               onClick={onToggleCollapse}
               aria-label="Expand sidebar"
               title="Expand sidebar"
-              className="flex h-8 w-8 items-center justify-center rounded-md border border-[#E5E5E5] dark:border-[#222222] bg-[#F7F7F7] dark:bg-[#101010] text-[#666666] dark:text-[#A3A3A3] hover:text-[#171717] dark:hover:text-[#FAFAFA]"
+              className="flex h-8 w-8 items-center justify-center rounded-md border border-[#E5E7EB] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#101010] text-[#6B7280] dark:text-[#A3A3A3] hover:text-[#111827] dark:hover:text-[#FAFAFA] cursor-pointer"
             >
               <PanelLeftOpen className="h-4 w-4" />
             </button>

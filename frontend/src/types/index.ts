@@ -46,6 +46,58 @@ export interface OnboardingResponse {
   storage: StorageStatus;
 }
 
+export interface BlueprintSkill {
+  name: string;
+  priority: 'core' | 'supporting' | string;
+  rationale: string;
+  difficulty: 'beginner' | 'intermediate' | 'advanced' | string;
+}
+
+export interface Blueprint {
+  target_role: string;
+  rationale: string;
+  skills: BlueprintSkill[];
+  provider: string;
+  model: string;
+  generated_at: string;
+  source?: string;
+}
+
+export interface BlueprintResponse {
+  blueprint: Blueprint;
+  storage: StorageStatus;
+}
+
+export interface ProfileAnalysis {
+  summary: string;
+  inferred_skills: string[];
+  suggested_roles: string[];
+  gaps_to_assess: string[];
+  provider: string;
+  model: string;
+  generated_at: string;
+  evidence_note?: string;
+}
+
+export interface ProfileResponse {
+  profile: ProfileAnalysis;
+  storage: StorageStatus;
+}
+
+export interface SessionView {
+  session_id: string;
+  learner: Learner;
+  blueprint: Blueprint | null;
+  profile_analysis: ProfileAnalysis | null;
+  github_repositories?: unknown[];
+  assessment: Assessment | null;
+  result: AssessmentResult | null;
+  roadmap: Roadmap | null;
+  messages: MentorMessage[];
+  events: AgentEvent[];
+  storage: StorageStatus;
+}
+
 export interface PublicQuestion {
   id: string;
   skill: string;

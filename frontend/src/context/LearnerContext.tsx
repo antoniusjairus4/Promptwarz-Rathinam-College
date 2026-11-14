@@ -7,19 +7,24 @@ import type {
   Assessment,
   AssessmentResult,
   Roadmap,
+  Blueprint,
+  MentorMessage,
 } from '@/types';
 
 interface LearnerContextType {
   learner: Learner | null;
   sessionToken: string | null;
   storageStatus: StorageStatus | null;
+  blueprint: Blueprint | null;
   assessment: Assessment | null;
   assessmentResult: AssessmentResult | null;
   roadmap: Roadmap | null;
+  mentorMessages: MentorMessage[];
   isLoading: boolean;
   error: string | null;
   onboard: (data: OnboardingRequest) => Promise<void>;
   refreshLearner: () => Promise<void>;
+  generateBlueprint: () => Promise<Blueprint>;
   generateAssessment: () => Promise<Assessment>;
   loadAssessment: () => Promise<Assessment | null>;
   submitAssessment: (answers: Record<string, number>) => Promise<AssessmentResult>;
@@ -27,6 +32,7 @@ interface LearnerContextType {
   generateRoadmap: () => Promise<Roadmap>;
   loadRoadmap: () => Promise<Roadmap | null>;
   completeStep: (stepId: string) => Promise<void>;
+  addMentorMessage: (msg: MentorMessage) => void;
   clearSession: () => void;
   clearError: () => void;
 }
@@ -46,9 +52,11 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const [learner, setLearner] = useState<Learner | null>(null);
   const [storageStatus, setStorageStatus] = useState<StorageStatus | null>(null);
+  const [blueprint, setBlueprint] = useState<Blueprint | null>(null);
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [assessmentResult, setAssessmentResult] = useState<AssessmentResult | null>(null);
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
+  const [mentorMessages, setMentorMessages] = useState<MentorMessage[]>([]);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,22 +67,44 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setSessionToken(null);
     setLearnerId(null);
     setLearner(null);
+    setBlueprint(null);
     setAssessment(null);
     setAssessmentResult(null);
     setRoadmap(null);
+    setMentorMessages([]);
     setError(null);
   }, []);
 
-  // Fetch initial profile if session exists
+  // Fetch initial profile / session restoration after refresh
   const refreshLearner = useCallback(async () => {
     if (!learnerId || !sessionToken) return;
 
     try {
       setIsLoading(true);
+
+      // Attempt full session restoration via GET /api/sessions/{session_id}
+      try {
+        const sessionView = await api.getSession(learnerId);
+        if (sessionView?.learner) {
+          setLearner(sessionView.learner);
+          if (sessionView.blueprint) setBlueprint(sessionView.blueprint);
+          if (sessionView.assessment) setAssessment(sessionView.assessment);
+          if (sessionView.result) setAssessmentResult(sessionView.result);
+          if (sessionView.roadmap) setRoadmap(sessionView.roadmap);
+          if (sessionView.messages && sessionView.messages.length > 0) {
+            setMentorMessages(sessionView.messages);
+          }
+          if (sessionView.storage) setStorageStatus(sessionView.storage);
+          return;
+        }
+      } catch {
+        // Fallback to individual API v1 routes if /api/sessions/{id} is unavailable
+      }
+
+      // Fallback v1 profile check
       const l = await api.getLearner(learnerId);
       setLearner(l);
 
-      // Check for existing assessment/result/roadmap
       try {
         const res = await api.getResult(learnerId);
         if (res?.result) setAssessmentResult(res.result);
@@ -97,7 +127,7 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     } catch (err: unknown) {
       if (err instanceof ApiClientError && (err.status === 401 || err.status === 404)) {
-        // In-memory backend restarted or session expired
+        // In-memory backend restarted or session token expired
         clearSession();
       } else if (err instanceof Error) {
         setError(err.message);
@@ -122,7 +152,7 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
       })
       .catch(() => {
-        // Backend might be offline
+        // Backend offline or unreachable
       });
   }, []);
 
@@ -130,15 +160,44 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setIsLoading(true);
     setError(null);
     try {
-      const res = await api.onboarding(data);
+      // Use session endpoint for complete journey features
+      const res = await api.createSession(data);
       localStorage.setItem(TOKEN_KEY, res.session_token);
       localStorage.setItem(LEARNER_ID_KEY, res.learner.id);
       setSessionToken(res.session_token);
       setLearnerId(res.learner.id);
       setLearner(res.learner);
       setStorageStatus(res.storage);
+
+      // Attempt to immediately trigger blueprint generation for a rich onboarding experience
+      try {
+        const bpRes = await api.createBlueprint(res.learner.id);
+        if (bpRes?.blueprint) {
+          setBlueprint(bpRes.blueprint);
+        }
+      } catch {
+        // Blueprint can be generated on demand later
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Onboarding request failed';
+      setError(msg);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const generateBlueprint = async (): Promise<Blueprint> => {
+    if (!learnerId) throw new Error('No active learner session found');
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await api.createBlueprint(learnerId);
+      setBlueprint(res.blueprint);
+      setStorageStatus(res.storage);
+      return res.blueprint;
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Blueprint generation failed';
       setError(msg);
       throw err;
     } finally {
@@ -264,19 +323,26 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  const addMentorMessage = (msg: MentorMessage) => {
+    setMentorMessages((prev) => [...prev, msg]);
+  };
+
   return (
     <LearnerContext.Provider
       value={{
         learner,
         sessionToken,
         storageStatus,
+        blueprint,
         assessment,
         assessmentResult,
         roadmap,
+        mentorMessages,
         isLoading,
         error,
         onboard,
         refreshLearner,
+        generateBlueprint,
         generateAssessment,
         loadAssessment,
         submitAssessment,
@@ -284,6 +350,7 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         generateRoadmap,
         loadRoadmap,
         completeStep,
+        addMentorMessage,
         clearSession,
         clearError: () => setError(null),
       }}

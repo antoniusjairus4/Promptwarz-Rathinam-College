@@ -13,12 +13,21 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 const STORAGE_KEY = 'maximus_theme';
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // PRIORITY 0: Light mode MUST be the default for first-time visitors (when saved is null).
   const [theme, setThemeState] = useState<Theme>(() => {
     const saved = localStorage.getItem(STORAGE_KEY) as Theme | null;
-    return saved === 'dark' || saved === 'light' || saved === 'system' ? saved : 'dark';
+    return saved === 'dark' || saved === 'light' || saved === 'system' ? saved : 'light';
   });
 
-  const [actualTheme, setActualTheme] = useState<'dark' | 'light'>('dark');
+  const [actualTheme, setActualTheme] = useState<'dark' | 'light'>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved === 'dark') return 'dark';
+    if (saved === 'system' && typeof window !== 'undefined') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    // Default is light for first-time visitors
+    return 'light';
+  });
 
   useEffect(() => {
     const root = document.documentElement;

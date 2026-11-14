@@ -16,25 +16,35 @@ import type {
   Assessment,
   AssessmentResult,
   Roadmap,
+  BlueprintResponse,
+  SessionView,
+  ProfileResponse,
 } from '../types';
 
 /**
- * Maximus Centralized API Client (v1)
+ * Maximus Centralized API Client (v1 + Session Facade)
  *
  * Rules:
- * 1. All backend calls route through this client to http://localhost:8000.
+ * 1. All backend calls route through this client.
  * 2. Authenticates with session_token via Authorization: Bearer <token>.
  * 3. Never call third-party LLMs directly from browser.
  * 4. Never fabricate mock data on error — backend is the single source of truth.
- * 5. Timeouts configured for AI workflows (120s).
+ * 5. Production safe: never defaults to localhost in production builds.
+ * 6. Extended timeouts (up to 360s) for AI worker generation workflows.
  */
 
-const BASE_URL: string =
-  import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '') || 'http://localhost:8000';
+const getBaseUrl = (): string => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '');
+  if (envUrl) return envUrl;
+  if (import.meta.env.PROD && typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  return 'http://localhost:8000';
+};
 
 const apiClient: AxiosInstance = axios.create({
-  baseURL: BASE_URL,
-  timeout: 120000, // Up to 120s for AI generation workflows
+  baseURL: getBaseUrl(),
+  timeout: 240000, // 240s default for standard backend operations
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
@@ -80,7 +90,7 @@ apiClient.interceptors.response.use(
       friendlyMessage = data.message;
     } else if (error.code === 'ECONNABORTED') {
       friendlyMessage =
-        'The operation timed out. AI generation may still be finishing on the backend; please check status.';
+        'The operation timed out. AI generation may still be finishing on the backend; session state will restore on refresh.';
     } else if (error.message) {
       friendlyMessage = error.message;
     }
@@ -116,13 +126,58 @@ export const api = {
   },
 
   /**
-   * Step 1: Onboarding (Career-first or Skills-first): POST /api/v1/onboarding
+   * Session Facade: Restore complete public state via GET /api/sessions/{session_id}
+   */
+  async getSession(sessionId: string): Promise<SessionView> {
+    return request<SessionView>({
+      method: 'GET',
+      url: `/api/sessions/${sessionId}`,
+    });
+  },
+
+  /**
+   * Session Facade: Create new session via POST /api/sessions
+   */
+  async createSession(payload: OnboardingRequest): Promise<OnboardingResponse> {
+    return request<OnboardingResponse>({
+      method: 'POST',
+      url: '/api/sessions',
+      data: payload,
+    });
+  },
+
+  /**
+   * API v1 Onboarding: POST /api/v1/onboarding
    */
   async onboarding(payload: OnboardingRequest): Promise<OnboardingResponse> {
     return request<OnboardingResponse>({
       method: 'POST',
       url: '/api/v1/onboarding',
       data: payload,
+    });
+  },
+
+  /**
+   * Generate AI Career Blueprint: POST /api/career/blueprint
+   */
+  async createBlueprint(sessionId: string): Promise<BlueprintResponse> {
+    return request<BlueprintResponse>({
+      method: 'POST',
+      url: '/api/career/blueprint',
+      data: { session_id: sessionId },
+      timeout: 240000,
+    });
+  },
+
+  /**
+   * Profile Analysis: POST /api/profile/analyze
+   */
+  async analyzeProfile(sessionId: string): Promise<ProfileResponse> {
+    return request<ProfileResponse>({
+      method: 'POST',
+      url: '/api/profile/analyze',
+      data: { session_id: sessionId },
+      timeout: 180000,
     });
   },
 
@@ -139,11 +194,13 @@ export const api = {
 
   /**
    * Step 2: Request Assessment: POST /api/v1/learners/{learner_id}/assessments
+   * Assessment generation can take up to 360s when utilizing fallback providers.
    */
   async createAssessment(learnerId: string): Promise<AssessmentResponse> {
     return request<AssessmentResponse>({
       method: 'POST',
       url: `/api/v1/learners/${learnerId}/assessments`,
+      timeout: 360000,
     });
   },
 
@@ -189,6 +246,7 @@ export const api = {
     return request<RoadmapResponse>({
       method: 'POST',
       url: `/api/v1/learners/${learnerId}/roadmap`,
+      timeout: 240000,
     });
   },
 
@@ -233,16 +291,20 @@ export const api = {
   async searchJobs(
     query: string = '',
     provider: 'both' | 'himalayas' | 'remotive' = 'both',
-    limit: number = 20
+    limit: number = 20,
+    sessionId?: string
   ): Promise<JobSearchResponse> {
+    const params: Record<string, string | number> = {
+      q: query,
+      provider,
+      limit,
+    };
+    if (sessionId) params.session_id = sessionId;
+
     return request<JobSearchResponse>({
       method: 'GET',
       url: '/api/v1/jobs/search',
-      params: {
-        q: query,
-        provider,
-        limit,
-      },
+      params,
     });
   },
 
@@ -251,15 +313,19 @@ export const api = {
    */
   async getLearningResources(
     query: string = '',
-    includeYoutube: boolean = true
+    includeYoutube: boolean = true,
+    sessionId?: string
   ): Promise<LearningResponse> {
+    const params: Record<string, string | boolean> = {
+      q: query,
+      include_youtube: includeYoutube,
+    };
+    if (sessionId) params.session_id = sessionId;
+
     return request<LearningResponse>({
       method: 'GET',
       url: '/api/v1/learning/resources',
-      params: {
-        q: query,
-        include_youtube: includeYoutube,
-      },
+      params,
     });
   },
 
@@ -290,6 +356,7 @@ export const api = {
       url: `/api/v1/integrations/github/${owner}/${repo}${
         paths.length > 0 ? `?${params.toString()}` : ''
       }`,
+      timeout: 120000,
     });
   },
 
@@ -304,6 +371,7 @@ export const api = {
         session_id: sessionId,
         message,
       },
+      timeout: 120000,
     });
   },
 };
