@@ -70,17 +70,17 @@ export const Topbar: React.FC<TopbarProps> = ({ onMenuToggle }) => {
           }
           className="flex items-center gap-2 rounded-lg border border-[#E5E7EB] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#0A0A0A] px-3 py-1.5 text-xs"
         >
-          <Activity className="h-3.5 w-3.5 text-[#9CA3AF] dark:text-[#666666]" />
+          <Activity className="h-3.5 w-3.5 text-[#6B7280] dark:text-[#A3A3A3]" />
 
           {healthStatus === 'checking' && (
-            <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-medium">
+            <span className="flex items-center gap-1.5 text-amber-700 dark:text-amber-400 font-medium">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span>
               Connecting
             </span>
           )}
 
           {healthStatus === 'healthy' && (
-            <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+            <span className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-medium">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
               API Online
             </span>
@@ -95,8 +95,8 @@ export const Topbar: React.FC<TopbarProps> = ({ onMenuToggle }) => {
 
           <button
             onClick={checkHealth}
-            title="Refresh connection status"
-            className="text-[#9CA3AF] dark:text-[#555555] hover:text-[#111827] dark:hover:text-[#FAFAFA] ml-1 transition-colors cursor-pointer"
+            title="Refresh connection status" aria-label="Refresh connection status" disabled={healthStatus === 'checking'}
+            className="text-[#6B7280] dark:text-[#A3A3A3] hover:text-[#111827] dark:hover:text-[#FAFAFA] ml-1 transition-colors cursor-pointer"
           >
             <RefreshCw className="h-3 w-3" />
           </button>

@@ -59,7 +59,7 @@ export const OnboardingPage: React.FC = () => {
         await onboard({
           full_name: fullName.trim(),
           track: 'skills_first',
-          skills: parsedSkills.length > 0 ? parsedSkills : ['General Engineering'],
+          skills: parsedSkills,
           interests: parsedInterests,
           experience_level: experienceLevel,
           weekly_hours: Number(weeklyHours) || 5,
@@ -76,7 +76,7 @@ export const OnboardingPage: React.FC = () => {
     <div className="max-w-[1100px] mx-auto py-6 sm:py-10 space-y-10">
       {/* Editorial Header */}
       <div className="space-y-3">
-        <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[#7C3AED] dark:text-[#8B5CF6]">
+        <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[#7C3AED] dark:text-[#A78BFA]">
           <span>Trajectory Calibration</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#111827] dark:text-[#FAFAFA]">
@@ -90,7 +90,7 @@ export const OnboardingPage: React.FC = () => {
           <div className="flex items-center gap-2 text-xs text-[#6B7280] dark:text-[#888888] pt-1">
             <span>Currently calibrated as: <strong className="text-[#111827] dark:text-[#FAFAFA]">{learner.full_name} ({learner.target_role || 'Skills-first'})</strong></span>
             <span>•</span>
-            <NavLink to="/dashboard" className="text-[#7C3AED] dark:text-[#8B5CF6] hover:underline font-medium">
+            <NavLink to="/dashboard" className="text-[#7C3AED] dark:text-[#A78BFA] hover:underline font-medium">
               Return to Dashboard →
             </NavLink>
           </div>
@@ -98,7 +98,7 @@ export const OnboardingPage: React.FC = () => {
       </div>
 
       {submitError && (
-        <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-600 dark:text-red-400 flex items-start gap-3">
+        <div role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-600 dark:text-red-400 flex items-start gap-3">
           <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <p className="font-semibold">Unable to Complete Calibration</p>
@@ -110,16 +110,16 @@ export const OnboardingPage: React.FC = () => {
       {/* User Basic Info Form */}
       <div className="rounded-xl border border-[#E5E7EB] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#0A0A0A] p-6 space-y-4">
         <div className="flex items-center gap-2 text-sm font-semibold text-[#111827] dark:text-[#FAFAFA]">
-          <User className="h-4 w-4 text-[#7C3AED] dark:text-[#8B5CF6]" />
+          <User className="h-4 w-4 text-[#7C3AED] dark:text-[#A78BFA]" />
           <span>Learner Profile</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-[#4B5563] dark:text-[#A3A3A3]">Full Name</label>
+            <label className="text-xs font-medium text-[#4B5563] dark:text-[#A3A3A3]" htmlFor="full-name">Full Name</label>
             <input
               type="text"
-              value={fullName}
+              id="full-name" value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="e.g. Alex Mercer"
               className="w-full h-10 rounded-lg border border-[#E5E7EB] dark:border-[#262626] bg-white dark:bg-[#050505] px-3.5 text-sm text-[#111827] dark:text-[#FAFAFA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]/50"
@@ -127,9 +127,9 @@ export const OnboardingPage: React.FC = () => {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-[#4B5563] dark:text-[#A3A3A3]">Experience Level</label>
+            <label className="text-xs font-medium text-[#4B5563] dark:text-[#A3A3A3]" htmlFor="experience-level">Experience Level</label>
             <select
-              value={experienceLevel}
+              id="experience-level" value={experienceLevel}
               onChange={(e) => setExperienceLevel(e.target.value as 'entry' | 'mid' | 'senior')}
               className="w-full h-10 rounded-lg border border-[#E5E7EB] dark:border-[#262626] bg-white dark:bg-[#050505] px-3.5 text-sm text-[#111827] dark:text-[#FAFAFA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]/50 cursor-pointer"
             >
@@ -140,9 +140,9 @@ export const OnboardingPage: React.FC = () => {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-[#4B5563] dark:text-[#A3A3A3]">Weekly Learning Commitment</label>
+            <label className="text-xs font-medium text-[#4B5563] dark:text-[#A3A3A3]" htmlFor="weekly-hours">Weekly Learning Commitment</label>
             <select
-              value={weeklyHours}
+              id="weekly-hours" value={weeklyHours}
               onChange={(e) => setWeeklyHours(Number(e.target.value))}
               className="w-full h-10 rounded-lg border border-[#E5E7EB] dark:border-[#262626] bg-white dark:bg-[#050505] px-3.5 text-sm text-[#111827] dark:text-[#FAFAFA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]/50 cursor-pointer"
             >
@@ -159,6 +159,7 @@ export const OnboardingPage: React.FC = () => {
         {/* Choice A: Career-First */}
         <div
           onClick={() => setSelectedTrack('career')}
+          role="group" aria-label="Career-first track"
           className={`cursor-pointer rounded-xl border p-6 sm:p-8 transition-all duration-200 flex flex-col justify-between space-y-6 ${
             selectedTrack === 'career'
               ? 'border-[#7C3AED] dark:border-[#8B5CF6] bg-[#FFFFFF] dark:bg-[#111111] shadow-sm ring-1 ring-[#7C3AED]/20'
@@ -168,7 +169,7 @@ export const OnboardingPage: React.FC = () => {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#E5E7EB] dark:border-[#262626] bg-[#FFFFFF] dark:bg-[#161616] text-[#111827] dark:text-[#FAFAFA] shadow-xs">
-                <Compass className="h-6 w-6 text-[#7C3AED] dark:text-[#8B5CF6]" />
+                <Compass className="h-6 w-6 text-[#7C3AED] dark:text-[#A78BFA]" />
               </div>
               <div
                 className={`flex h-6 w-6 items-center justify-center rounded-full border transition-colors ${
@@ -183,7 +184,7 @@ export const OnboardingPage: React.FC = () => {
 
             <div className="space-y-2">
               <h2 className="text-xl font-semibold tracking-tight text-[#111827] dark:text-[#FAFAFA]">
-                Career-First Trajectory
+                <button type="button" aria-pressed={selectedTrack === 'career'} onClick={() => setSelectedTrack('career')}>{"Career-First Trajectory"}</button>
               </h2>
               <p className="text-sm text-[#6B7280] dark:text-[#A3A3A3] leading-relaxed">
                 Target an aspirational technical role. The agentic system reverse-engineers the exact competencies, prerequisite dependencies, and milestone challenges needed.
@@ -200,10 +201,11 @@ export const OnboardingPage: React.FC = () => {
               type="text"
               value={careerInput}
               onChange={(e) => setCareerInput(e.target.value)}
+              aria-label="e.g. Distributed Systems Engineer, Platform Lead, Python Backend"
               placeholder="e.g. Distributed Systems Engineer, Platform Lead, Python Backend"
               className="w-full h-11 rounded-lg border border-[#E5E7EB] dark:border-[#262626] bg-white dark:bg-[#050505] px-4 text-sm text-[#111827] dark:text-[#FAFAFA] placeholder-[#9CA3AF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]/50 transition-colors"
             />
-            <p className="text-xs text-[#9CA3AF] dark:text-[#666666]">
+            <p className="text-xs text-[#6B7280] dark:text-[#A3A3A3]">
               Accepts any technical role title, not a restricted preset list.
             </p>
           </div>
@@ -212,6 +214,7 @@ export const OnboardingPage: React.FC = () => {
         {/* Choice B: Skills-First */}
         <div
           onClick={() => setSelectedTrack('skills')}
+          role="group" aria-label="Skills-first track"
           className={`cursor-pointer rounded-xl border p-6 sm:p-8 transition-all duration-200 flex flex-col justify-between space-y-6 ${
             selectedTrack === 'skills'
               ? 'border-[#7C3AED] dark:border-[#8B5CF6] bg-[#FFFFFF] dark:bg-[#111111] shadow-sm ring-1 ring-[#7C3AED]/20'
@@ -221,7 +224,7 @@ export const OnboardingPage: React.FC = () => {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#E5E7EB] dark:border-[#262626] bg-[#FFFFFF] dark:bg-[#161616] text-[#111827] dark:text-[#FAFAFA] shadow-xs">
-                <Sparkles className="h-6 w-6 text-[#7C3AED] dark:text-[#8B5CF6]" />
+                <Sparkles className="h-6 w-6 text-[#7C3AED] dark:text-[#A78BFA]" />
               </div>
               <div
                 className={`flex h-6 w-6 items-center justify-center rounded-full border transition-colors ${
@@ -236,7 +239,7 @@ export const OnboardingPage: React.FC = () => {
 
             <div className="space-y-2">
               <h2 className="text-xl font-semibold tracking-tight text-[#111827] dark:text-[#FAFAFA]">
-                Skills-First Trajectory
+                <button type="button" aria-pressed={selectedTrack === 'skills'} onClick={() => setSelectedTrack('skills')}>{"Skills-First Trajectory"}</button>
               </h2>
               <p className="text-sm text-[#6B7280] dark:text-[#A3A3A3] leading-relaxed">
                 Input your existing languages, frameworks, and technical interests. Discover high-demand engineering trajectories that maximize your current strengths.
@@ -254,6 +257,7 @@ export const OnboardingPage: React.FC = () => {
                 type="text"
                 value={skillsInput}
                 onChange={(e) => setSkillsInput(e.target.value)}
+                aria-label="e.g. Python, TypeScript, Docker, PostgreSQL"
                 placeholder="e.g. Python, TypeScript, Docker, PostgreSQL"
                 className="w-full h-10 rounded-lg border border-[#E5E7EB] dark:border-[#262626] bg-white dark:bg-[#050505] px-4 text-sm text-[#111827] dark:text-[#FAFAFA] placeholder-[#9CA3AF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]/50 transition-colors"
               />
@@ -267,6 +271,7 @@ export const OnboardingPage: React.FC = () => {
                 type="text"
                 value={interestsInput}
                 onChange={(e) => setInterestsInput(e.target.value)}
+                aria-label="e.g. Distributed Systems, Machine Learning, Web3, Cloud Security"
                 placeholder="e.g. Distributed Systems, Machine Learning, Web3, Cloud Security"
                 className="w-full h-10 rounded-lg border border-[#E5E7EB] dark:border-[#262626] bg-white dark:bg-[#050505] px-4 text-sm text-[#111827] dark:text-[#FAFAFA] placeholder-[#9CA3AF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]/50 transition-colors"
               />
@@ -283,7 +288,7 @@ export const OnboardingPage: React.FC = () => {
             {selectedTrack === 'career' ? 'Career-First' : 'Skills-First'}
           </span>
           {isFormValid && (
-            <span className="ml-2 text-emerald-600 dark:text-emerald-400 font-medium">
+            <span className="ml-2 text-emerald-700 dark:text-emerald-400 font-medium">
               • Ready to calibrate
             </span>
           )}
@@ -312,13 +317,13 @@ export const OnboardingPage: React.FC = () => {
 
       {/* Trust & Provenance Notice */}
       <div className="rounded-xl border border-[#E5E7EB] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#080808] p-5 text-xs text-[#6B7280] dark:text-[#888888] flex items-start gap-3.5">
-        <ShieldCheck className="h-5 w-5 text-[#7C3AED] dark:text-[#8B5CF6] shrink-0 mt-0.5" />
+        <ShieldCheck className="h-5 w-5 text-[#7C3AED] dark:text-[#A78BFA] shrink-0 mt-0.5" />
         <div className="space-y-1">
           <p className="font-semibold text-[#111827] dark:text-[#FAFAFA]">
             Anti-Fabrication & Evidence Guarantee
           </p>
           <p className="leading-relaxed">
-            Maximus never generates synthetic skills or fabricated scores. Every competency on your roadmap is proven through hands-on code assessments or repository evidence.
+            Maximus never generates synthetic skills or fabricated scores. Quiz scores reflect this assessment only. Self-reports, source observations, and learner-reported practice do not independently verify competence.
           </p>
         </div>
       </div>

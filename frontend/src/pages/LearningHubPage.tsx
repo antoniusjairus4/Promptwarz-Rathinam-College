@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { safeExternalUrl } from '@/lib/urls';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   BookOpen,
@@ -29,16 +30,21 @@ export const LearningHubPage: React.FC = () => {
   const [resources, setResources] = useState<LearningResource[]>([]);
   const [providers, setProviders] = useState<ProviderStatus[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const activeRequest = useRef<AbortController | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const fetchResources = async (searchQuery: string, withYoutube: boolean) => {
+    activeRequest.current?.abort();
+    const controller = new AbortController();
+    activeRequest.current = controller;
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const res = await api.getLearningResources(searchQuery.trim(), withYoutube, learner?.id);
+      const res = await api.getLearningResources(searchQuery.trim(), withYoutube, learner?.id, controller.signal);
       setResources(res.resources || []);
       setProviders(res.providers || []);
     } catch (err: unknown) {
+      if (controller.signal.aborted) return;
       if (err instanceof ApiClientError) {
         setErrorMessage(err.message);
       } else if (err instanceof Error) {
@@ -47,12 +53,13 @@ export const LearningHubPage: React.FC = () => {
         setErrorMessage('Failed to fetch learning resources.');
       }
     } finally {
-      setIsLoading(false);
+      if (activeRequest.current === controller) setIsLoading(false);
     }
   };
 
   useEffect(() => {
     fetchResources(initialQuery, includeYoutube);
+    return () => activeRequest.current?.abort();
   }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -69,7 +76,7 @@ export const LearningHubPage: React.FC = () => {
         return <FileText className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />;
       case 'course':
       default:
-        return <GraduationCap className="h-4 w-4 text-[#7C3AED] dark:text-[#8B5CF6]" />;
+        return <GraduationCap className="h-4 w-4 text-[#7C3AED] dark:text-[#A78BFA]" />;
     }
   };
 
@@ -79,7 +86,7 @@ export const LearningHubPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-[#E5E7EB] dark:border-[#222222] pb-6">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs uppercase tracking-widest text-[#7C3AED] dark:text-[#8B5CF6]">
+            <span className="font-mono text-xs uppercase tracking-widest text-[#7C3AED] dark:text-[#A78BFA]">
               Curriculum & Reference
             </span>
             <Badge variant="outline" className="text-xs">
@@ -90,7 +97,7 @@ export const LearningHubPage: React.FC = () => {
             Learning Hub
           </h1>
           <p className="text-base text-[#6B7280] dark:text-[#A3A3A3] max-w-2xl leading-relaxed">
-            Targeted official documentation, accredited open-courseware (MIT OCW, freeCodeCamp, MDN), and YouTube technical benchmarks.
+            Targeted official documentation, free open-courseware (MIT OCW, freeCodeCamp, MDN), and YouTube technical benchmarks.
           </p>
         </div>
       </div>
@@ -98,11 +105,12 @@ export const LearningHubPage: React.FC = () => {
       {/* Search & Filter Toolbar */}
       <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
-          <Search className="h-4 w-4 absolute left-3.5 top-3.5 text-[#9CA3AF] pointer-events-none" />
+          <Search className="h-4 w-4 absolute left-3.5 top-3.5 text-[#6B7280] pointer-events-none" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            aria-label="Search topics (e.g. Python, Algorithms, Web Design)..."
             placeholder="Search topics (e.g. Python, Algorithms, Web Design)..."
             className="w-full h-11 pl-10 pr-4 rounded-lg border border-[#E5E7EB] dark:border-[#262626] bg-white dark:bg-[#0A0A0A] text-sm text-[#111827] dark:text-[#FAFAFA] placeholder-[#9CA3AF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]/50"
           />
@@ -138,14 +146,14 @@ export const LearningHubPage: React.FC = () => {
             >
               <span className={`h-2 w-2 rounded-full ${p.status === 'ok' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
               <span className="capitalize font-mono font-medium text-[#111827] dark:text-[#FAFAFA]">{p.provider}: {p.status}</span>
-              {p.cached && <span className="text-[10px] text-[#7C3AED] dark:text-[#8B5CF6]">• cached</span>}
+              {p.cached && <span className="text-[10px] text-[#7C3AED] dark:text-[#A78BFA]">• cached</span>}
             </div>
           ))}
         </div>
       )}
 
       {errorMessage && (
-        <div className="p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-xs sm:text-sm text-red-600 dark:text-red-400 flex items-start gap-3">
+        <div role="alert" className="p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-xs sm:text-sm text-red-600 dark:text-red-400 flex items-start gap-3">
           <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <span className="font-semibold">Unable to Load Resources</span>
@@ -157,7 +165,7 @@ export const LearningHubPage: React.FC = () => {
       {/* Loading state */}
       {isLoading && (
         <div className="py-16 text-center space-y-4">
-          <Loader2 className="h-8 w-8 text-[#7C3AED] dark:text-[#8B5CF6] animate-spin mx-auto" />
+          <Loader2 className="h-8 w-8 text-[#7C3AED] dark:text-[#A78BFA] animate-spin mx-auto" />
           <p className="text-xs text-[#6B7280] dark:text-[#888888]">Fetching official curriculum and video benchmarks...</p>
         </div>
       )}
@@ -205,21 +213,21 @@ export const LearningHubPage: React.FC = () => {
 
               <div className="pt-3 border-t border-[#E5E7EB] dark:border-[#222222] flex items-center justify-between text-xs">
                 {item.reviewed_on ? (
-                  <span className="flex items-center gap-1 text-[#9CA3AF] dark:text-[#666666] text-[11px]">
+                  <span className="flex items-center gap-1 text-[#6B7280] dark:text-[#A3A3A3] text-[11px]">
                     <Calendar className="h-3 w-3" />
                     Audited {item.reviewed_on}
                   </span>
                 ) : (
-                  <span className="text-[#9CA3AF] dark:text-[#666666] text-[11px]">
+                  <span className="text-[#6B7280] dark:text-[#A3A3A3] text-[11px]">
                     {item.provenance === 'youtube_api' ? 'YouTube Search API' : 'Official Catalog'}
                   </span>
                 )}
 
                 <a
-                  href={item.url}
+                  href={safeExternalUrl(item.url)}
                   target="_blank"
                   rel="noreferrer"
-                  className="font-medium text-[#7C3AED] dark:text-[#8B5CF6] hover:underline inline-flex items-center gap-1"
+                  className="font-medium text-[#7C3AED] dark:text-[#A78BFA] hover:underline inline-flex items-center gap-1"
                 >
                   <span>Open Resource</span>
                   <ExternalLink className="h-3.5 w-3.5" />
@@ -233,7 +241,7 @@ export const LearningHubPage: React.FC = () => {
       {/* Empty State */}
       {!isLoading && resources.length === 0 && !errorMessage && (
         <Card className="p-8 text-center space-y-4">
-          <BookOpen className="h-10 w-10 text-[#9CA3AF] dark:text-[#555555] mx-auto" />
+          <BookOpen className="h-10 w-10 text-[#6B7280] dark:text-[#A3A3A3] mx-auto" />
           <div className="space-y-1 max-w-md mx-auto">
             <h3 className="text-base font-semibold text-[#111827] dark:text-[#FAFAFA]">
               No Resources Found for "{query}"
@@ -258,7 +266,7 @@ export const LearningHubPage: React.FC = () => {
 
       {/* Catalog Guarantee Notice */}
       <div className="rounded-xl border border-[#E5E7EB] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#080808] p-4 text-xs text-[#6B7280] dark:text-[#888888] flex items-start gap-3">
-        <ShieldCheck className="h-4 w-4 text-[#7C3AED] dark:text-[#8B5CF6] shrink-0 mt-0.5" />
+        <ShieldCheck className="h-4 w-4 text-[#7C3AED] dark:text-[#A78BFA] shrink-0 mt-0.5" />
         <div>
           <span className="font-semibold text-[#111827] dark:text-[#FAFAFA] block">
             Accredited Catalog Integrity:

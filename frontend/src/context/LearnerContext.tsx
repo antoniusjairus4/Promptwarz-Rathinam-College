@@ -9,6 +9,7 @@ import type {
   Roadmap,
   Blueprint,
   MentorMessage,
+  ProfileAnalysis,
 } from '@/types';
 
 interface LearnerContextType {
@@ -16,6 +17,8 @@ interface LearnerContextType {
   sessionToken: string | null;
   storageStatus: StorageStatus | null;
   blueprint: Blueprint | null;
+  profileAnalysis: ProfileAnalysis | null;
+  analyzeProfile: () => Promise<void>;
   assessment: Assessment | null;
   assessmentResult: AssessmentResult | null;
   roadmap: Roadmap | null;
@@ -53,6 +56,7 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [learner, setLearner] = useState<Learner | null>(null);
   const [storageStatus, setStorageStatus] = useState<StorageStatus | null>(null);
   const [blueprint, setBlueprint] = useState<Blueprint | null>(null);
+  const [profileAnalysis, setProfileAnalysis] = useState<ProfileAnalysis | null>(null);
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [assessmentResult, setAssessmentResult] = useState<AssessmentResult | null>(null);
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
@@ -68,10 +72,12 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setLearnerId(null);
     setLearner(null);
     setBlueprint(null);
+    setProfileAnalysis(null);
     setAssessment(null);
     setAssessmentResult(null);
     setRoadmap(null);
     setMentorMessages([]);
+    setStorageStatus(null);
     setError(null);
   }, []);
 
@@ -82,50 +88,19 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       setIsLoading(true);
 
-      // Attempt full session restoration via GET /api/sessions/{session_id}
-      try {
-        const sessionView = await api.getSession(learnerId);
-        if (sessionView?.learner) {
-          setLearner(sessionView.learner);
-          if (sessionView.blueprint) setBlueprint(sessionView.blueprint);
-          if (sessionView.assessment) setAssessment(sessionView.assessment);
-          if (sessionView.result) setAssessmentResult(sessionView.result);
-          if (sessionView.roadmap) setRoadmap(sessionView.roadmap);
-          if (sessionView.messages && sessionView.messages.length > 0) {
-            setMentorMessages(sessionView.messages);
-          }
-          if (sessionView.storage) setStorageStatus(sessionView.storage);
-          return;
-        }
-      } catch {
-        // Fallback to individual API v1 routes if /api/sessions/{id} is unavailable
-      }
-
-      // Fallback v1 profile check
-      const l = await api.getLearner(learnerId);
-      setLearner(l);
-
-      try {
-        const res = await api.getResult(learnerId);
-        if (res?.result) setAssessmentResult(res.result);
-      } catch {
-        // No result yet is normal
-      }
-
-      try {
-        const a = await api.getAssessment(learnerId);
-        if (a?.assessment) setAssessment(a.assessment);
-      } catch {
-        // No assessment yet is normal
-      }
-
-      try {
-        const r = await api.getRoadmap(learnerId);
-        if (r?.roadmap) setRoadmap(r.roadmap);
-      } catch {
-        // No roadmap yet is normal
-      }
+      const view = await api.getSession(learnerId);
+      if (localStorage.getItem(LEARNER_ID_KEY) !== learnerId || localStorage.getItem(TOKEN_KEY) !== sessionToken) return;
+      setLearner(view.learner);
+      setBlueprint(view.blueprint ?? null);
+      setProfileAnalysis(view.profile_analysis ?? null);
+      setAssessment(view.assessment ?? null);
+      setAssessmentResult(view.result ?? null);
+      setRoadmap(view.roadmap ?? null);
+      setMentorMessages(view.messages ?? []);
+      setStorageStatus(view.storage);
+      setError(null);
     } catch (err: unknown) {
+      if (localStorage.getItem(LEARNER_ID_KEY) !== learnerId) return;
       if (err instanceof ApiClientError && (err.status === 401 || err.status === 404)) {
         // In-memory backend restarted or session token expired
         clearSession();
@@ -167,6 +142,12 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setSessionToken(res.session_token);
       setLearnerId(res.session_id);
       setLearner(res.session.learner);
+      setAssessment(null);
+      setAssessmentResult(null);
+      setRoadmap(null);
+      setMentorMessages([]);
+      setBlueprint(null);
+    setProfileAnalysis(null);
       setStorageStatus(res.storage);
 
       // Attempt to immediately trigger blueprint generation for a rich onboarding experience
@@ -212,6 +193,7 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       const res = await api.createAssessment(learnerId);
       setAssessment(res.assessment);
+      if (!res.assessment.submitted) { setAssessmentResult(null); setRoadmap(null); setProfileAnalysis(null); }
       setStorageStatus(res.storage);
       return res.assessment;
     } catch (err: unknown) {
@@ -223,7 +205,7 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  const loadAssessment = async (): Promise<Assessment | null> => {
+  const loadAssessment = useCallback(async (): Promise<Assessment | null> => {
     if (!learnerId) return null;
     try {
       const res = await api.getAssessment(learnerId);
@@ -235,7 +217,7 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } catch {
       return null;
     }
-  };
+  }, [learnerId]);
 
   const submitAssessment = async (
     answers: Record<string, number>
@@ -260,7 +242,7 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  const loadAssessmentResult = async (): Promise<AssessmentResult | null> => {
+  const loadAssessmentResult = useCallback(async (): Promise<AssessmentResult | null> => {
     if (!learnerId) return null;
     try {
       const res = await api.getResult(learnerId);
@@ -272,14 +254,14 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } catch {
       return null;
     }
-  };
+  }, [learnerId]);
 
   const generateRoadmap = async (): Promise<Roadmap> => {
     if (!learnerId) throw new Error('No active learner session found');
     setIsLoading(true);
     setError(null);
     try {
-      const res = await api.createRoadmap(learnerId);
+      const res = await api.createRoadmap(learnerId, Boolean(roadmap));
       setRoadmap(res.roadmap);
       setStorageStatus(res.storage);
       return res.roadmap;
@@ -292,7 +274,7 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  const loadRoadmap = async (): Promise<Roadmap | null> => {
+  const loadRoadmap = useCallback(async (): Promise<Roadmap | null> => {
     if (!learnerId) return null;
     try {
       const res = await api.getRoadmap(learnerId);
@@ -304,7 +286,7 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } catch {
       return null;
     }
-  };
+  }, [learnerId]);
 
   const completeStep = async (stepId: string) => {
     if (!learnerId) throw new Error('No active learner session found');
@@ -323,6 +305,13 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  const analyzeProfile = async () => {
+    if (!learnerId) throw new Error('Create a learner session before analyzing skills');
+    const response = await api.analyzeProfile(learnerId);
+    setProfileAnalysis(response.profile);
+    setStorageStatus(response.storage);
+  };
+
   const addMentorMessage = (msg: MentorMessage) => {
     setMentorMessages((prev) => [...prev, msg]);
   };
@@ -334,6 +323,8 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         sessionToken,
         storageStatus,
         blueprint,
+        profileAnalysis,
+        analyzeProfile,
         assessment,
         assessmentResult,
         roadmap,

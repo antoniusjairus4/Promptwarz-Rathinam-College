@@ -1,22 +1,23 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { LearnerProvider } from '@/context/LearnerContext';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { OnboardingPage } from '@/pages/OnboardingPage';
-import { DashboardPage } from '@/pages/DashboardPage';
-import { SkillDnaPage } from '@/pages/SkillDnaPage';
-import { SkillArenaPage } from '@/pages/SkillArenaPage';
-import { CareerNavigatorPage } from '@/pages/CareerNavigatorPage';
-import { LearningHubPage } from '@/pages/LearningHubPage';
-import { LiveJobExplorerPage } from '@/pages/LiveJobExplorerPage';
-import { AiMentorPage } from '@/pages/AiMentorPage';
+const OnboardingPage = lazy(() => import('@/pages/OnboardingPage').then(module => ({ default: module.OnboardingPage })));
+const DashboardPage = lazy(() => import('@/pages/DashboardPage').then(module => ({ default: module.DashboardPage })));
+const SkillDnaPage = lazy(() => import('@/pages/SkillDnaPage').then(module => ({ default: module.SkillDnaPage })));
+const SkillArenaPage = lazy(() => import('@/pages/SkillArenaPage').then(module => ({ default: module.SkillArenaPage })));
+const CareerNavigatorPage = lazy(() => import('@/pages/CareerNavigatorPage').then(module => ({ default: module.CareerNavigatorPage })));
+const LearningHubPage = lazy(() => import('@/pages/LearningHubPage').then(module => ({ default: module.LearningHubPage })));
+const LiveJobExplorerPage = lazy(() => import('@/pages/LiveJobExplorerPage').then(module => ({ default: module.LiveJobExplorerPage })));
+const AiMentorPage = lazy(() => import('@/pages/AiMentorPage').then(module => ({ default: module.AiMentorPage })));
 
 export const App: React.FC = () => {
   return (
     <ThemeProvider>
       <LearnerProvider>
         <BrowserRouter>
+          <Suspense fallback={<p role="status" className="p-8">Loading page…</p>}>
           <Routes>
             <Route element={<AppLayout />}>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -31,6 +32,7 @@ export const App: React.FC = () => {
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Route>
           </Routes>
+          </Suspense>
         </BrowserRouter>
       </LearnerProvider>
     </ThemeProvider>

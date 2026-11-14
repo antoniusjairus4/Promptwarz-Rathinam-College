@@ -40,7 +40,7 @@ export const SkillArenaPage: React.FC = () => {
   const [showSandbox, setShowSandbox] = useState(false);
   const [sandboxLanguage, setSandboxLanguage] = useState<'typescript' | 'python'>('python');
   const [sandboxCode, setSandboxCode] = useState<string>(
-    '# Maximus Interactive Scratchpad\n# Use this Monaco Editor buffer to test logic and algorithmic edge cases\n\ndef check_solution():\n    return "Algorithm ready for verification"\n\nprint(check_solution())'
+    '# Maximus Interactive Scratchpad\n# Use this scratchpad to draft code. Code is not executed or graded.\n\ndef check_solution():\n    return "Algorithm ready for verification"\n\nprint(check_solution())'
   );
 
   // Load existing assessment or result on mount
@@ -96,7 +96,7 @@ export const SkillArenaPage: React.FC = () => {
   if (!learner) {
     return (
       <div className="max-w-[1000px] mx-auto py-12 text-center space-y-6">
-        <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-500">
+        <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-700 dark:text-amber-500">
           <AlertCircle className="h-8 w-8" />
         </div>
         <div className="space-y-2">
@@ -142,7 +142,7 @@ export const SkillArenaPage: React.FC = () => {
           </div>
           <div className="flex items-center gap-4 text-xs sm:text-sm text-[#6B7280] dark:text-[#888888]">
             <span className="flex items-center gap-1.5 font-medium">
-              <Clock className="h-4 w-4 text-[#7C3AED] dark:text-[#8B5CF6]" />
+              <Clock className="h-4 w-4 text-[#7C3AED] dark:text-[#A78BFA]" />
               Agentic Assessment Architect
             </span>
             <span>•</span>
@@ -225,7 +225,7 @@ export const SkillArenaPage: React.FC = () => {
           {/* STATE 1: No assessment generated yet */}
           {!assessment && !assessmentResult && !isLoading && (
             <div className="rounded-xl border border-[#E5E7EB] dark:border-[#222222] bg-white dark:bg-[#0A0A0A] p-8 sm:p-12 text-center space-y-6 shadow-xs">
-              <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#8B5CF6]">
+              <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#A78BFA]">
                 <Terminal className="h-7 w-7" />
               </div>
               <div className="space-y-2 max-w-lg mx-auto">
@@ -251,7 +251,7 @@ export const SkillArenaPage: React.FC = () => {
           {/* STATE 2: Loading / Generating with AI */}
           {isLoading && !assessmentResult && (
             <div className="rounded-xl border border-[#E5E7EB] dark:border-[#222222] bg-white dark:bg-[#0A0A0A] p-12 text-center space-y-6 shadow-xs">
-              <Loader2 className="h-10 w-10 text-[#7C3AED] dark:text-[#8B5CF6] animate-spin mx-auto" />
+              <Loader2 className="h-10 w-10 text-[#7C3AED] dark:text-[#A78BFA] animate-spin mx-auto" />
               <div className="space-y-2 max-w-md mx-auto">
                 <h3 className="text-lg font-semibold text-[#111827] dark:text-[#FAFAFA]">
                   Constructing Targeted Assessment
@@ -270,7 +270,7 @@ export const SkillArenaPage: React.FC = () => {
               <div className="rounded-xl border border-[#E5E7EB] dark:border-[#222222] bg-white dark:bg-[#0A0A0A] p-6 sm:p-8 space-y-6 shadow-xs">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#E5E7EB] dark:border-[#222222]">
                   <div className="space-y-1">
-                    <span className="text-xs font-mono uppercase text-[#7C3AED] dark:text-[#8B5CF6]">
+                    <span className="text-xs font-mono uppercase text-[#7C3AED] dark:text-[#A78BFA]">
                       Assessment Complete
                     </span>
                     <h2 className="text-2xl font-bold text-[#111827] dark:text-[#FAFAFA]">
@@ -278,7 +278,7 @@ export const SkillArenaPage: React.FC = () => {
                     </h2>
                   </div>
                   <div className="text-right">
-                    <div className="text-3xl sm:text-4xl font-mono font-bold text-[#7C3AED] dark:text-[#8B5CF6]">
+                    <div className="text-3xl sm:text-4xl font-mono font-bold text-[#7C3AED] dark:text-[#A78BFA]">
                       {Math.round(assessmentResult.score)}%
                     </div>
                     <div className="text-xs text-[#6B7280] dark:text-[#888888]">
@@ -309,8 +309,8 @@ export const SkillArenaPage: React.FC = () => {
                           <span className="text-xs font-medium text-[#111827] dark:text-[#FAFAFA]">
                             {skill}
                           </span>
-                          <span className="text-xs font-mono font-semibold text-[#7C3AED] dark:text-[#8B5CF6]">
-                            {Math.round(score * 100)}%
+                          <span className="text-xs font-mono font-semibold text-[#7C3AED] dark:text-[#A78BFA]">
+                            {Math.round(score)}%
                           </span>
                         </div>
                       ))}
@@ -424,15 +424,15 @@ export const SkillArenaPage: React.FC = () => {
                   {currentQuestion.options.map((option, optIdx) => {
                     const isSelected = selectedAnswers[currentQuestion.id] === optIdx;
                     return (
-                      <div
+                      <label
                         key={optIdx}
-                        onClick={() => handleSelectOption(currentQuestion.id, optIdx)}
                         className={`flex items-start gap-3.5 p-4 rounded-xl border transition-all cursor-pointer ${
                           isSelected
                             ? 'border-[#7C3AED] dark:border-[#8B5CF6] bg-[#7C3AED]/5 dark:bg-[#8B5CF6]/10 shadow-xs'
                             : 'border-[#E5E7EB] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#070707] hover:border-[#D1D5DB] dark:hover:border-[#333333]'
                         }`}
                       >
+                        <input type="radio" name={currentQuestion.id} value={optIdx} checked={isSelected} onChange={() => handleSelectOption(currentQuestion.id, optIdx)} className="sr-only" />
                         <div
                           className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-xs mt-0.5 font-medium transition-colors ${
                             isSelected
@@ -445,7 +445,7 @@ export const SkillArenaPage: React.FC = () => {
                         <span className="text-sm text-[#111827] dark:text-[#FAFAFA] leading-relaxed">
                           {option}
                         </span>
-                      </div>
+                      </label>
                     );
                   })}
                 </div>
@@ -504,14 +504,14 @@ export const SkillArenaPage: React.FC = () => {
             {/* Editor Header Bar */}
             <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#E5E7EB] dark:border-[#222222] bg-white dark:bg-[#050505]">
               <div className="flex items-center gap-2">
-                <FileCode2 className="h-4 w-4 text-[#7C3AED] dark:text-[#8B5CF6]" />
+                <FileCode2 className="h-4 w-4 text-[#7C3AED] dark:text-[#A78BFA]" />
                 <span className="text-xs font-mono font-semibold text-[#111827] dark:text-[#FAFAFA]">
-                  Interactive Sandbox
+                  Code scratchpad (not executed)
                 </span>
               </div>
 
               <div className="flex items-center gap-2">
-                <select
+                <select aria-label="Scratchpad language"
                   value={sandboxLanguage}
                   onChange={(e) => setSandboxLanguage(e.target.value as 'typescript' | 'python')}
                   className="h-8 pl-2 pr-6 rounded-md border border-[#E5E7EB] dark:border-[#262626] bg-[#FAFAFA] dark:bg-[#111111] text-xs font-mono text-[#111827] dark:text-[#FAFAFA] cursor-pointer"

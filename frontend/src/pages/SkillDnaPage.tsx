@@ -1,3 +1,4 @@
+import { safeExternalUrl } from '@/lib/urls';
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
@@ -25,7 +26,7 @@ import { useTheme } from '@/context/ThemeContext';
 import type { RepositoryResponse, SourceFile } from '@/types';
 
 export const SkillDnaPage: React.FC = () => {
-  const { learner, assessmentResult } = useLearner();
+  const { learner, assessmentResult, refreshLearner, profileAnalysis, analyzeProfile } = useLearner();
   const { actualTheme } = useTheme();
 
   // GitHub input state
@@ -68,6 +69,10 @@ export const SkillDnaPage: React.FC = () => {
     try {
       const res = await api.analyzeGithub(parsed.owner, parsed.repo, paths);
       setRepoData(res);
+      if (learner) {
+        await api.saveGithubEvidence(learner.id, `${parsed.owner}/${parsed.repo}`);
+        await refreshLearner();
+      }
       setSelectedFileIndex(0);
     } catch (err: unknown) {
       if (err instanceof ApiClientError) {
@@ -106,7 +111,7 @@ export const SkillDnaPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-[#E5E7EB] dark:border-[#222222] pb-6">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs uppercase tracking-widest text-[#7C3AED] dark:text-[#8B5CF6]">
+            <span className="font-mono text-xs uppercase tracking-widest text-[#7C3AED] dark:text-[#A78BFA]">
               Competency Matrix & DNA
             </span>
             <Badge variant="outline" className="text-xs">
@@ -117,7 +122,7 @@ export const SkillDnaPage: React.FC = () => {
             Skill DNA & Repository Evidence
           </h1>
           <p className="text-base text-[#6B7280] dark:text-[#A3A3A3] max-w-2xl leading-relaxed">
-            Multi-vector representation of your audited technical capabilities evaluated against authentic repository code and hands-on assessments.
+            Self-reported skills, referenced public source observations, and quiz knowledge are distinct evidence. None independently verifies authorship or professional competence.
           </p>
         </div>
 
@@ -134,7 +139,7 @@ export const SkillDnaPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#8B5CF6]">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#A78BFA]">
                 <GitBranch className="h-4 w-4" />
               </div>
               <CardTitle className="text-xl font-semibold">GitHub Repository Analysis</CardTitle>
@@ -143,7 +148,7 @@ export const SkillDnaPage: React.FC = () => {
               Inspect public repositories for detectable technology stacks and inspect source files in Monaco Editor.
             </CardDescription>
           </div>
-          <span className="text-xs font-mono text-[#6B7280] dark:text-[#666666]">
+          <span className="text-xs font-mono text-[#6B7280] dark:text-[#A3A3A3]">
             API v1 /integrations/github
           </span>
         </div>
@@ -158,6 +163,7 @@ export const SkillDnaPage: React.FC = () => {
               type="text"
               value={repoInput}
               onChange={(e) => setRepoInput(e.target.value)}
+              aria-label="e.g. psf/requests, facebook/react, octocat/Hello-World"
               placeholder="e.g. psf/requests, facebook/react, octocat/Hello-World"
               className="w-full h-11 rounded-lg border border-[#E5E7EB] dark:border-[#262626] bg-white dark:bg-[#050505] px-3.5 text-xs sm:text-sm font-mono text-[#111827] dark:text-[#FAFAFA] placeholder-[#9CA3AF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]/50"
             />
@@ -171,6 +177,7 @@ export const SkillDnaPage: React.FC = () => {
               type="text"
               value={pathsInput}
               onChange={(e) => setPathsInput(e.target.value)}
+              aria-label="e.g. README.md, package.json"
               placeholder="e.g. README.md, package.json"
               className="w-full h-11 rounded-lg border border-[#E5E7EB] dark:border-[#262626] bg-white dark:bg-[#050505] px-3.5 text-xs sm:text-sm font-mono text-[#111827] dark:text-[#FAFAFA] placeholder-[#9CA3AF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]/50"
             />
@@ -200,7 +207,7 @@ export const SkillDnaPage: React.FC = () => {
         </div>
 
         {errorMessage && (
-          <div className="p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-xs sm:text-sm text-red-600 dark:text-red-400 flex items-start gap-3">
+          <div role="alert" className="p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-xs sm:text-sm text-red-600 dark:text-red-400 flex items-start gap-3">
             <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
             <div className="space-y-1">
               <span className="font-semibold">Analysis Failed</span>
@@ -217,7 +224,7 @@ export const SkillDnaPage: React.FC = () => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <a
-                    href={repoData.repository.url}
+                    href={safeExternalUrl(repoData.repository.url)}
                     target="_blank"
                     rel="noreferrer"
                     className="text-lg font-bold text-[#111827] dark:text-[#FAFAFA] hover:text-[#7C3AED] dark:hover:text-[#8B5CF6] inline-flex items-center gap-1.5 transition-colors"
@@ -243,7 +250,7 @@ export const SkillDnaPage: React.FC = () => {
                     {repoData.repository.stars.toLocaleString()}
                   </span>
                   <span className="flex items-center gap-1">
-                    <GitFork className="h-3.5 w-3.5 text-[#9CA3AF]" />
+                    <GitFork className="h-3.5 w-3.5 text-[#6B7280]" />
                     {repoData.repository.forks.toLocaleString()}
                   </span>
                   <span>branch: {repoData.repository.default_branch}</span>
@@ -258,7 +265,7 @@ export const SkillDnaPage: React.FC = () => {
 
               {/* Evidence Scope Notice */}
               <div className="p-3.5 rounded-xl border border-[#E5E7EB] dark:border-[#222222] bg-white dark:bg-[#0F0F0F] text-xs text-[#6B7280] dark:text-[#888888] flex items-start gap-2.5">
-                <ShieldCheck className="h-4 w-4 text-[#7C3AED] dark:text-[#8B5CF6] shrink-0 mt-0.5" />
+                <ShieldCheck className="h-4 w-4 text-[#7C3AED] dark:text-[#A78BFA] shrink-0 mt-0.5" />
                 <span>
                   <strong>Evidence Integrity:</strong> {repoData.repository.evidence_note || 'Repository metadata represents public factual records. Repository evidence supports technical exposure but does not replace verified assessment proofs.'}
                 </span>
@@ -270,7 +277,7 @@ export const SkillDnaPage: React.FC = () => {
               <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-800 dark:text-amber-400 flex items-center gap-2">
                 <ShieldAlert className="h-4 w-4 shrink-0" />
                 <span>
-                  GitHub API rate limit reached for unauthenticated requests from this host. Showing available cached metadata and test fixtures.
+                  GitHub API rate limit reached for unauthenticated requests from this host. Only successfully retrieved source data is displayed.
                 </span>
               </div>
             )}
@@ -299,9 +306,9 @@ export const SkillDnaPage: React.FC = () => {
                           : 'text-[#6B7280] dark:text-[#888888] hover:text-[#111827] dark:hover:text-[#FAFAFA]'
                       }`}
                     >
-                      <FileCode className="h-3.5 w-3.5 text-[#7C3AED] dark:text-[#8B5CF6]" />
+                      <FileCode className="h-3.5 w-3.5 text-[#7C3AED] dark:text-[#A78BFA]" />
                       <span>{file.path}</span>
-                      <span className="text-[10px] text-[#9CA3AF]">({file.status})</span>
+                      <span className="text-[10px] text-[#6B7280]">({file.status})</span>
                     </button>
                   ))}
                 </div>
@@ -315,17 +322,17 @@ export const SkillDnaPage: React.FC = () => {
                           {selectedFile.path}
                         </span>
                         {selectedFile.sha && (
-                          <span className="font-mono text-[11px] text-[#9CA3AF] dark:text-[#666666]">
+                          <span className="font-mono text-[11px] text-[#6B7280] dark:text-[#A3A3A3]">
                             blob: {selectedFile.sha.slice(0, 7)}
                           </span>
                         )}
                       </div>
                       {selectedFile.url && (
                         <a
-                          href={selectedFile.url}
+                          href={safeExternalUrl(selectedFile.url)}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-[#7C3AED] dark:text-[#8B5CF6] hover:underline inline-flex items-center gap-1"
+                          className="text-[#7C3AED] dark:text-[#A78BFA] hover:underline inline-flex items-center gap-1"
                         >
                           <span>View on GitHub</span>
                           <ExternalLink className="h-3 w-3" />
@@ -363,6 +370,22 @@ export const SkillDnaPage: React.FC = () => {
         )}
       </Card>
 
+      <Card className="p-6 space-y-3">
+        <h2 className="text-xl font-semibold">AI Skill Profile</h2>
+        <p className="text-sm">Analyze your declared skills, saved repository observations, and quiz history. These are inferences, not independently verified qualifications.</p>
+        <Button disabled={!learner || isAnalyzing} onClick={async () => {
+          setIsAnalyzing(true); setErrorMessage(null);
+          try { await analyzeProfile(); } catch (error) { setErrorMessage(error instanceof Error ? error.message : 'Profile analysis failed'); }
+          finally { setIsAnalyzing(false); }
+        }}>Analyze Skill Profile</Button>
+        {profileAnalysis && <div role="status" className="space-y-2">
+          <p>{profileAnalysis.summary}</p>
+          <p>Inferred skills: {profileAnalysis.inferred_skills.join(', ') || 'No inference available'}</p>
+          <p>Gaps to assess: {profileAnalysis.gaps_to_assess.join(', ') || 'None suggested'}</p>
+          <p className="text-sm">{profileAnalysis.evidence_note}</p>
+        </div>}
+      </Card>
+
       {/* SECTION 2: Verified Competency Matrix */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8">
@@ -370,7 +393,7 @@ export const SkillDnaPage: React.FC = () => {
             <CardHeader className="pb-4">
               <CardTitle className="text-xl font-semibold">Audited Competency Vector</CardTitle>
               <CardDescription>
-                Verified skills proven through hands-on challenges or code assessment
+                Quiz observations are limited knowledge evidence, not independent skill verification.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -394,11 +417,11 @@ export const SkillDnaPage: React.FC = () => {
                       </div>
 
                       <div className="flex items-center gap-3">
-                        <span className="text-xs font-mono font-semibold text-[#7C3AED] dark:text-[#8B5CF6]">
-                          {Math.round(qv.score * 100)}%
+                        <span className="text-xs font-mono font-semibold text-[#7C3AED] dark:text-[#A78BFA]">
+                          {Math.round(qv.score)}%
                         </span>
                         <Badge variant={qv.passed ? 'success' : 'outline'} className="text-[11px]">
-                          {qv.passed ? 'Verified' : 'Unverified'}
+                          {qv.passed ? 'Quiz passed' : 'Needs practice'}
                         </Badge>
                       </div>
                     </div>
@@ -427,13 +450,13 @@ export const SkillDnaPage: React.FC = () => {
                 </div>
               ) : (
                 <div className="py-8 text-center space-y-4">
-                  <Layers className="h-10 w-10 text-[#9CA3AF] dark:text-[#555555] mx-auto" />
+                  <Layers className="h-10 w-10 text-[#6B7280] dark:text-[#A3A3A3] mx-auto" />
                   <div className="space-y-1 max-w-md mx-auto">
                     <h3 className="text-sm font-semibold text-[#111827] dark:text-[#FAFAFA]">
                       No Audited Competencies Yet
                     </h3>
                     <p className="text-xs text-[#6B7280] dark:text-[#A3A3A3]">
-                      Take an assessment in Skill Arena or complete roadmap steps to add verified competencies to your Skill DNA matrix.
+                      Take an assessment in Skill Arena to observe your current knowledge. Practice completion remains learner-reported.
                     </p>
                   </div>
                   <NavLink to="/arena">
@@ -452,7 +475,7 @@ export const SkillDnaPage: React.FC = () => {
         <div className="lg:col-span-4 space-y-5">
           <div className="rounded-xl border border-[#E5E7EB] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#0A0A0A] p-6 space-y-2.5 shadow-xs">
             <div className="flex items-center gap-2 text-sm font-semibold text-[#111827] dark:text-[#FAFAFA]">
-              <Info className="h-4 w-4 text-[#7C3AED] dark:text-[#8B5CF6]" />
+              <Info className="h-4 w-4 text-[#7C3AED] dark:text-[#A78BFA]" />
               <span>Auditing Methodology</span>
             </div>
             <p className="text-xs text-[#6B7280] dark:text-[#A3A3A3] leading-relaxed">
@@ -469,7 +492,7 @@ export const SkillDnaPage: React.FC = () => {
             </p>
             <NavLink
               to="/onboarding"
-              className="text-xs font-medium text-[#7C3AED] dark:text-[#8B5CF6] hover:underline inline-flex items-center gap-1.5 pt-1"
+              className="text-xs font-medium text-[#7C3AED] dark:text-[#A78BFA] hover:underline inline-flex items-center gap-1.5 pt-1"
             >
               Re-calibrate Target Role →
             </NavLink>

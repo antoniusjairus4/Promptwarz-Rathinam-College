@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { safeExternalUrl } from '@/lib/urls';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Search,
   Briefcase,
@@ -24,20 +25,25 @@ export const LiveJobExplorerPage: React.FC = () => {
       ? 'python'
       : learner?.target_role || 'python'
   );
-  const [providerChoice, setProviderChoice] = useState<'both' | 'himalayas' | 'remotive'>('both');
+  const [providerChoice, setProviderChoice] = useState<'all' | 'himalayas' | 'remotive' | 'arbeitnow' | 'adzuna'>('all');
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [providers, setProviders] = useState<ProviderStatus[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const activeRequest = useRef<AbortController | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const fetchJobs = async (query: string, provider: 'both' | 'himalayas' | 'remotive') => {
+  const fetchJobs = async (query: string, provider: 'all' | 'himalayas' | 'remotive' | 'arbeitnow' | 'adzuna') => {
+    activeRequest.current?.abort();
+    const controller = new AbortController();
+    activeRequest.current = controller;
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const res = await api.searchJobs(query.trim(), provider, 20, learner?.id);
+      const res = await api.searchJobs(query.trim(), provider, 20, learner?.id, controller.signal);
       setJobs(res.jobs || []);
       setProviders(res.providers || []);
     } catch (err: unknown) {
+      if (controller.signal.aborted) return;
       if (err instanceof ApiClientError) {
         setErrorMessage(err.message);
       } else if (err instanceof Error) {
@@ -46,12 +52,13 @@ export const LiveJobExplorerPage: React.FC = () => {
         setErrorMessage('Failed to search jobs.');
       }
     } finally {
-      setIsLoading(false);
+      if (activeRequest.current === controller) setIsLoading(false);
     }
   };
 
   useEffect(() => {
     fetchJobs(searchQuery, providerChoice);
+    return () => activeRequest.current?.abort();
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -65,7 +72,7 @@ export const LiveJobExplorerPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-[#E5E7EB] dark:border-[#222222] pb-6">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs uppercase tracking-widest text-[#7C3AED] dark:text-[#8B5CF6]">
+            <span className="font-mono text-xs uppercase tracking-widest text-[#7C3AED] dark:text-[#A78BFA]">
               Market Intelligence
             </span>
             <Badge variant="outline" className="text-xs">
@@ -76,7 +83,7 @@ export const LiveJobExplorerPage: React.FC = () => {
             Live Job Explorer
           </h1>
           <p className="text-base text-[#6B7280] dark:text-[#A3A3A3] max-w-2xl leading-relaxed">
-            Real engineering positions aggregated directly from public Remotive and Himalayas feeds. Zero synthetic or simulated listings.
+            Real positions aggregated from available external job providers. Zero synthetic or simulated listings.
           </p>
         </div>
       </div>
@@ -84,23 +91,26 @@ export const LiveJobExplorerPage: React.FC = () => {
       {/* Filter / Search Toolbar */}
       <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-4 top-3.5 h-4 w-4 text-[#9CA3AF] pointer-events-none" />
+          <Search className="absolute left-4 top-3.5 h-4 w-4 text-[#6B7280] pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search verified positions (e.g. Python, Fullstack, Backend)..."
+            aria-label="Search source listings (e.g. Python, Fullstack, Backend)..."
+            placeholder="Search source listings (e.g. Python, Fullstack, Backend)..."
             className="w-full h-11 rounded-lg border border-[#E5E7EB] dark:border-[#262626] bg-white dark:bg-[#0A0A0A] pl-11 pr-4 text-sm text-[#111827] dark:text-[#FAFAFA] placeholder-[#9CA3AF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]/50"
           />
         </div>
 
         <div className="flex items-center gap-3">
-          <select
+          <select aria-label="Job provider"
             value={providerChoice}
-            onChange={(e) => setProviderChoice(e.target.value as 'both' | 'himalayas' | 'remotive')}
+            onChange={(e) => setProviderChoice(e.target.value as 'all' | 'himalayas' | 'remotive' | 'arbeitnow' | 'adzuna')}
             className="h-11 px-3.5 rounded-lg border border-[#E5E7EB] dark:border-[#262626] bg-white dark:bg-[#0A0A0A] text-xs font-mono text-[#111827] dark:text-[#FAFAFA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]/50 cursor-pointer"
           >
-            <option value="both">All Feeds (Both)</option>
+            <option value="all">All Available Feeds</option>
+            <option value="arbeitnow">Arbeitnow Only</option>
+            <option value="adzuna">Adzuna Only</option>
             <option value="remotive">Remotive Only</option>
             <option value="himalayas">Himalayas Only</option>
           </select>
@@ -137,18 +147,18 @@ export const LiveJobExplorerPage: React.FC = () => {
               <span className="font-semibold capitalize text-[#111827] dark:text-[#FAFAFA]">
                 {p.provider}
               </span>
-              <span className="font-mono text-[11px] text-[#9CA3AF] dark:text-[#666666]">
+              <span className="font-mono text-[11px] text-[#6B7280] dark:text-[#A3A3A3]">
                 ({p.status})
               </span>
-              {p.cached && <span className="text-[10px] text-[#7C3AED] dark:text-[#8B5CF6]">• cached</span>}
-              {p.detail && <span className="text-[10px] text-[#9CA3AF] max-w-xs truncate">• {p.detail}</span>}
+              {p.cached && <span className="text-[10px] text-[#7C3AED] dark:text-[#A78BFA]">• cached</span>}
+              {p.detail && <span className="text-[10px] text-[#6B7280] max-w-xs truncate">• {p.detail}</span>}
             </div>
           ))}
         </div>
       )}
 
       {errorMessage && (
-        <div className="p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-xs sm:text-sm text-red-600 dark:text-red-400 flex items-start gap-3">
+        <div role="alert" className="p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-xs sm:text-sm text-red-600 dark:text-red-400 flex items-start gap-3">
           <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <span className="font-semibold">Job Search Notice</span>
@@ -160,7 +170,7 @@ export const LiveJobExplorerPage: React.FC = () => {
       {/* Loading state */}
       {isLoading && (
         <div className="py-16 text-center space-y-4">
-          <Loader2 className="h-8 w-8 text-[#7C3AED] dark:text-[#8B5CF6] animate-spin mx-auto" />
+          <Loader2 className="h-8 w-8 text-[#7C3AED] dark:text-[#A78BFA] animate-spin mx-auto" />
           <p className="text-xs text-[#6B7280] dark:text-[#888888]">
             Querying live job feeds from Remotive and Himalayas...
           </p>
@@ -195,20 +205,20 @@ export const LiveJobExplorerPage: React.FC = () => {
 
                   <div className="flex items-center gap-4 text-xs text-[#6B7280] dark:text-[#888888] flex-wrap">
                     <span className="flex items-center gap-1.5 font-medium text-[#111827] dark:text-[#FAFAFA]">
-                      <Building className="h-3.5 w-3.5 text-[#9CA3AF]" />
+                      <Building className="h-3.5 w-3.5 text-[#6B7280]" />
                       {job.company}
                     </span>
 
                     {job.location && (
                       <span className="flex items-center gap-1">
-                        <MapPin className="h-3.5 w-3.5 text-[#9CA3AF]" />
+                        <MapPin className="h-3.5 w-3.5 text-[#6B7280]" />
                         {job.location}
                       </span>
                     )}
 
                     {job.published_at && (
                       <span className="flex items-center gap-1 text-[11px]">
-                        <Calendar className="h-3 w-3 text-[#9CA3AF]" />
+                        <Calendar className="h-3 w-3 text-[#6B7280]" />
                         {new Date(job.published_at).toLocaleDateString()}
                       </span>
                     )}
@@ -236,12 +246,12 @@ export const LiveJobExplorerPage: React.FC = () => {
 
                   {/* Source Attributions */}
                   {job.sources && job.sources.length > 0 && (
-                    <div className="flex items-center gap-3 pt-1 text-[11px] text-[#9CA3AF] dark:text-[#666666]">
+                    <div className="flex items-center gap-3 pt-1 text-[11px] text-[#6B7280] dark:text-[#A3A3A3]">
                       <span>Source:</span>
                       {job.sources.map((src, idx) => (
                         <a
                           key={idx}
-                          href={src.source_url}
+                          href={safeExternalUrl(src.source_url)}
                           target="_blank"
                           rel="noreferrer"
                           className="underline hover:text-[#111827] dark:hover:text-[#FAFAFA] capitalize"
@@ -256,7 +266,7 @@ export const LiveJobExplorerPage: React.FC = () => {
                 {/* Apply Action */}
                 <div className="shrink-0 flex sm:flex-col items-end gap-2">
                   <a
-                    href={job.application_url}
+                    href={safeExternalUrl(job.application_url)}
                     target="_blank"
                     rel="noreferrer"
                     className="w-full sm:w-auto"
@@ -280,7 +290,7 @@ export const LiveJobExplorerPage: React.FC = () => {
       {/* Empty State */}
       {!isLoading && jobs.length === 0 && !errorMessage && (
         <div className="rounded-xl border border-[#E5E7EB] dark:border-[#222222] bg-white dark:bg-[#0A0A0A] p-12 text-center space-y-4 shadow-xs">
-          <Briefcase className="h-10 w-10 text-[#9CA3AF] dark:text-[#555555] mx-auto" />
+          <Briefcase className="h-10 w-10 text-[#6B7280] dark:text-[#A3A3A3] mx-auto" />
           <div className="space-y-1 max-w-md mx-auto">
             <h3 className="text-base font-semibold text-[#111827] dark:text-[#FAFAFA]">
               No Live Listings Found for "{searchQuery}"
@@ -305,7 +315,7 @@ export const LiveJobExplorerPage: React.FC = () => {
 
       {/* Terms & Attribution Guarantee Notice */}
       <div className="rounded-xl border border-[#E5E7EB] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#080808] p-4 text-xs text-[#6B7280] dark:text-[#888888] flex items-start gap-3">
-        <ShieldCheck className="h-4 w-4 text-[#7C3AED] dark:text-[#8B5CF6] shrink-0 mt-0.5" />
+        <ShieldCheck className="h-4 w-4 text-[#7C3AED] dark:text-[#A78BFA] shrink-0 mt-0.5" />
         <div>
           <span className="font-semibold text-[#111827] dark:text-[#FAFAFA] block">
             Third-Party Feed Compliance:

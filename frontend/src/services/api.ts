@@ -113,6 +113,7 @@ export const api = {
     return request<HealthCheckResponse>({
       method: 'GET',
       url: '/api/health',
+      timeout: 10000,
     });
   },
 
@@ -123,6 +124,7 @@ export const api = {
     return request<SystemStatusResponse>({
       method: 'GET',
       url: '/api/v1/status',
+      timeout: 10000,
     });
   },
 
@@ -243,10 +245,11 @@ export const api = {
   /**
    * Step 3: Generate Adaptive Roadmap: POST /api/v1/learners/{learner_id}/roadmap
    */
-  async createRoadmap(learnerId: string): Promise<RoadmapResponse> {
+  async createRoadmap(learnerId: string, refresh = false): Promise<RoadmapResponse> {
     return request<RoadmapResponse>({
       method: 'POST',
-      url: `/api/v1/learners/${learnerId}/roadmap`,
+      url: '/api/roadmap/generate',
+      data: { session_id: learnerId, refresh },
       timeout: 10000,
     });
   },
@@ -291,9 +294,10 @@ export const api = {
    */
   async searchJobs(
     query: string = '',
-    provider: 'both' | 'himalayas' | 'remotive' = 'both',
+    provider: 'all' | 'both' | 'himalayas' | 'remotive' | 'arbeitnow' | 'adzuna' = 'all',
     limit: number = 20,
-    sessionId?: string
+    sessionId?: string,
+    signal?: AbortSignal
   ): Promise<JobSearchResponse> {
     const params: Record<string, string | number> = {
       q: query,
@@ -304,8 +308,8 @@ export const api = {
 
     return request<JobSearchResponse>({
       method: 'GET',
-      url: '/api/v1/jobs/search',
-      params,
+      url: '/api/jobs/search',
+      params, signal,
     });
   },
 
@@ -315,7 +319,8 @@ export const api = {
   async getLearningResources(
     query: string = '',
     includeYoutube: boolean = true,
-    sessionId?: string
+    sessionId?: string,
+    signal?: AbortSignal
   ): Promise<LearningResponse> {
     const params: Record<string, string | boolean> = {
       q: query,
@@ -325,8 +330,8 @@ export const api = {
 
     return request<LearningResponse>({
       method: 'GET',
-      url: '/api/v1/learning/resources',
-      params,
+      url: '/api/resources/search',
+      params, signal,
     });
   },
 
@@ -339,6 +344,10 @@ export const api = {
       url: '/api/v1/learning/youtube',
       params: { q: query },
     });
+  },
+
+  async saveGithubEvidence(sessionId: string, target: string): Promise<void> {
+    await request({ method: 'POST', url: '/api/github/analyze', data: { session_id: sessionId, target }, timeout: 10000 });
   },
 
   /**

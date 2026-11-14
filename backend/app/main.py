@@ -13,6 +13,7 @@ from app.api.workflow import router
 from app.api.integrations import router as integrations_router
 from app.services.external import ExternalServices
 from app.core.config import Settings
+from app.core.limits import RequestLimits
 from app.db.repository import Conflict, Repository, StorageUnavailable, build_repository
 from app.services.inference import Generator, HostedGenerator, InferenceUnavailable, inference_deadline
 from app.services.journey import JourneyService
@@ -48,6 +49,7 @@ def create_app(settings: Settings | None = None, repository: Repository | None =
         finally:
             inference_deadline.reset(token)
 
+    application.add_middleware(RequestLimits)
     application.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,

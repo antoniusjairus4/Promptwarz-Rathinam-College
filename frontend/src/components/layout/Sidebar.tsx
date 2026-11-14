@@ -80,7 +80,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse })
       {/* Main Navigation Links */}
       <nav className="flex-1 space-y-1.5 p-3 overflow-y-auto">
         {!collapsed && (
-          <div className="px-3 pt-2 pb-1.5 text-xs font-medium uppercase tracking-wider text-[#9CA3AF] dark:text-[#666666]">
+          <div className="px-3 pt-2 pb-1.5 text-xs font-medium uppercase tracking-wider text-[#6B7280] dark:text-[#A3A3A3]">
             Platform
           </div>
         )}
@@ -108,8 +108,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse })
                     className={cn(
                       'h-4 w-4 shrink-0 transition-colors',
                       isActive
-                        ? 'text-[#7C3AED] dark:text-[#8B5CF6]'
-                        : 'text-[#9CA3AF] dark:text-[#666666] group-hover:text-[#111827] dark:group-hover:text-[#FAFAFA]'
+                        ? 'text-[#7C3AED] dark:text-[#A78BFA]'
+                        : 'text-[#6B7280] dark:text-[#A3A3A3] group-hover:text-[#111827] dark:group-hover:text-[#FAFAFA]'
                     )}
                   />
                   {!collapsed && <span className="truncate">{item.name}</span>}
@@ -134,7 +134,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse })
             collapsed ? 'justify-center' : ''
           )}
         >
-          <Sparkles className="h-4 w-4 shrink-0 text-[#7C3AED] dark:text-[#8B5CF6]" />
+          <Sparkles className="h-4 w-4 shrink-0 text-[#7C3AED] dark:text-[#A78BFA]" />
           {!collapsed && <span className="font-medium truncate">Career Onboarding</span>}
         </NavLink>
 

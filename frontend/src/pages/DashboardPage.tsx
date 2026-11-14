@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
@@ -28,12 +28,9 @@ export const DashboardPage: React.FC = () => {
     storageStatus,
     assessmentResult,
     roadmap,
-    refreshLearner,
   } = useLearner();
 
-  useEffect(() => {
-    refreshLearner();
-  }, [refreshLearner]);
+
 
   const targetCareer = learner?.target_role || null;
   const verifiedSkillsCount =
@@ -56,9 +53,9 @@ export const DashboardPage: React.FC = () => {
       {storageStatus?.mode === 'memory' && (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs sm:text-sm text-amber-700 dark:text-amber-400 flex items-center justify-between gap-3 shadow-xs">
           <div className="flex items-center gap-2.5">
-            <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+            <Info className="h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400" />
             <span>
-              <strong>Temporary demo session:</strong> In-memory storage is active. Learner progress is preserved in this browser session but resets when the backend server restarts.
+              <strong>Temporary demo session:</strong> In-memory storage is active. Progress is held by this backend process, not durably in the browser; it resets on server restart and is not shared across serverless instances.
             </span>
           </div>
           <span className="font-mono text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-800 dark:text-amber-300">
@@ -99,7 +96,7 @@ export const DashboardPage: React.FC = () => {
         {/* Current Career Target Status Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-[#E5E7EB] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#080808] px-5 py-4 shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#8B5CF6]">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#A78BFA]">
               <Compass className="h-5 w-5" />
             </div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -117,13 +114,13 @@ export const DashboardPage: React.FC = () => {
 
           <div className="flex items-center gap-6 text-xs sm:text-sm text-[#6B7280] dark:text-[#888888]">
             <span>
-              Verified Skills:{' '}
+              Quiz-observed skills:{' '}
               <strong className="text-[#111827] dark:text-[#FAFAFA] font-medium font-mono">
                 {verifiedSkillsCount}
               </strong>
             </span>
             <span>
-              Readiness Score:{' '}
+              Quiz Score:{' '}
               <strong className="text-[#111827] dark:text-[#FAFAFA] font-medium font-mono">
                 {readinessScore !== null ? `${readinessScore}%` : 'Unassessed'}
               </strong>
@@ -141,22 +138,22 @@ export const DashboardPage: React.FC = () => {
 
       {/* MAIN SECTION: 65% / 35% Asymmetric Composition */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Primary Panel (65% width) - Career Readiness Overview */}
+        {/* Primary Panel (65% width) - Learning Progress Overview */}
         <div className="lg:col-span-8">
           <Card className="h-full flex flex-col justify-between p-2">
             <CardHeader className="p-6 pb-2">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-[#7C3AED] dark:text-[#8B5CF6]" />
-                    <CardTitle className="text-xl font-semibold">Career Readiness Overview</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-[#7C3AED] dark:text-[#A78BFA]" />
+                    <CardTitle className="text-xl font-semibold">Learning Progress Overview</CardTitle>
                   </div>
                   <CardDescription className="text-sm mt-1">
                     Objective benchmarking against industry engineering standards
                   </CardDescription>
                 </div>
                 {readinessScore !== null && (
-                  <span className="text-3xl font-bold font-mono text-[#7C3AED] dark:text-[#8B5CF6]">
+                  <span className="text-3xl font-bold font-mono text-[#7C3AED] dark:text-[#A78BFA]">
                     {readinessScore}%
                   </span>
                 )}
@@ -203,7 +200,7 @@ export const DashboardPage: React.FC = () => {
                 <EmptyState
                   icon={Layers}
                   title="Readiness Profile Uncalibrated"
-                  description="Complete a timed coding assessment in Skill Arena or calibrate your career target in Onboarding to calculate an authentic readiness score."
+                  description="Complete a knowledge quiz in Skill Arena or calibrate your career target in Onboarding to calculate an quiz knowledge score."
                   actionLabel="Launch Assessment in Skill Arena"
                   onAction={() => navigate('/arena')}
                   secondaryActionLabel="Set Target Career"
@@ -220,7 +217,7 @@ export const DashboardPage: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-[#7C3AED] dark:bg-[#8B5CF6]" />
-                <span className="text-xs font-mono uppercase tracking-wider text-[#9CA3AF] dark:text-[#666666]">
+                <span className="text-xs font-mono uppercase tracking-wider text-[#6B7280] dark:text-[#A3A3A3]">
                   Recommended Next Step
                 </span>
               </div>
@@ -313,10 +310,10 @@ export const DashboardPage: React.FC = () => {
             {activeStep ? (
               <div className="p-4 rounded-xl border border-[#E5E7EB] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#080808] space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono uppercase text-[#7C3AED] dark:text-[#8B5CF6]">
+                  <span className="text-xs font-mono uppercase text-[#7C3AED] dark:text-[#A78BFA]">
                     {activeStep.skill}
                   </span>
-                  <span className="text-xs text-[#9CA3AF] dark:text-[#666666]">
+                  <span className="text-xs text-[#6B7280] dark:text-[#A3A3A3]">
                     ~{activeStep.estimated_hours}h
                   </span>
                 </div>
@@ -332,7 +329,7 @@ export const DashboardPage: React.FC = () => {
                 </p>
                 <NavLink
                   to="/career"
-                  className="text-xs sm:text-sm font-medium text-[#7C3AED] dark:text-[#8B5CF6] hover:underline inline-flex items-center gap-1.5"
+                  className="text-xs sm:text-sm font-medium text-[#7C3AED] dark:text-[#A78BFA] hover:underline inline-flex items-center gap-1.5"
                 >
                   View Career Navigator graph <ArrowRight className="h-3.5 w-3.5" />
                 </NavLink>
@@ -368,7 +365,7 @@ export const DashboardPage: React.FC = () => {
                 </p>
                 <NavLink
                   to={learner ? '/arena' : '/onboarding'}
-                  className="text-xs sm:text-sm font-medium text-[#7C3AED] dark:text-[#8B5CF6] hover:underline inline-flex items-center gap-1.5"
+                  className="text-xs sm:text-sm font-medium text-[#7C3AED] dark:text-[#A78BFA] hover:underline inline-flex items-center gap-1.5"
                 >
                   {learner ? 'Take Assessment' : 'Configure Career Target'} <ArrowRight className="h-3.5 w-3.5" />
                 </NavLink>
@@ -395,17 +392,17 @@ export const DashboardPage: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 className="h-4 w-4 text-[#9CA3AF] dark:text-[#666666] shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-[#6B7280] dark:text-[#A3A3A3] shrink-0" />
                     <span>0 assessments completed</span>
                   </>
                 )}
               </div>
-              <p className="text-xs text-[#9CA3AF] dark:text-[#666666] leading-relaxed">
+              <p className="text-xs text-[#6B7280] dark:text-[#A3A3A3] leading-relaxed">
                 Completed challenges in Skill Arena receive immutable evaluation proofs stored on the backend.
               </p>
               <NavLink
                 to="/arena"
-                className="text-xs sm:text-sm font-medium text-[#7C3AED] dark:text-[#8B5CF6] hover:underline inline-flex items-center gap-1.5"
+                className="text-xs sm:text-sm font-medium text-[#7C3AED] dark:text-[#A78BFA] hover:underline inline-flex items-center gap-1.5"
               >
                 {assessmentResult ? 'Retake assessment' : 'Start an assessment'} <ArrowRight className="h-3.5 w-3.5" />
               </NavLink>
@@ -424,7 +421,7 @@ export const DashboardPage: React.FC = () => {
                 Real engineering positions from external feeds
               </CardDescription>
             </div>
-            <Briefcase className="h-5 w-5 text-[#9CA3AF] dark:text-[#666666]" />
+            <Briefcase className="h-5 w-5 text-[#6B7280] dark:text-[#A3A3A3]" />
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-[#6B7280] dark:text-[#A3A3A3] leading-relaxed">
@@ -432,7 +429,7 @@ export const DashboardPage: React.FC = () => {
             </p>
             <NavLink
               to="/jobs"
-              className="text-xs sm:text-sm font-medium text-[#7C3AED] dark:text-[#8B5CF6] hover:underline inline-flex items-center gap-1.5"
+              className="text-xs sm:text-sm font-medium text-[#7C3AED] dark:text-[#A78BFA] hover:underline inline-flex items-center gap-1.5"
             >
               Search live job listings <ArrowRight className="h-3.5 w-3.5" />
             </NavLink>
@@ -447,7 +444,7 @@ export const DashboardPage: React.FC = () => {
                 Targeted curriculum & official documentation
               </CardDescription>
             </div>
-            <BookOpen className="h-5 w-5 text-[#9CA3AF] dark:text-[#666666]" />
+            <BookOpen className="h-5 w-5 text-[#6B7280] dark:text-[#A3A3A3]" />
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-[#6B7280] dark:text-[#A3A3A3] leading-relaxed">
@@ -455,7 +452,7 @@ export const DashboardPage: React.FC = () => {
             </p>
             <NavLink
               to="/learning"
-              className="text-xs sm:text-sm font-medium text-[#7C3AED] dark:text-[#8B5CF6] hover:underline inline-flex items-center gap-1.5"
+              className="text-xs sm:text-sm font-medium text-[#7C3AED] dark:text-[#A78BFA] hover:underline inline-flex items-center gap-1.5"
             >
               Browse curated resources <ArrowRight className="h-3.5 w-3.5" />
             </NavLink>
@@ -470,7 +467,7 @@ export const DashboardPage: React.FC = () => {
                 Context-aware guidance on your roadmap
               </CardDescription>
             </div>
-            <Flame className="h-5 w-5 text-[#9CA3AF] dark:text-[#666666]" />
+            <Flame className="h-5 w-5 text-[#6B7280] dark:text-[#A3A3A3]" />
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-[#6B7280] dark:text-[#A3A3A3] leading-relaxed">
@@ -478,7 +475,7 @@ export const DashboardPage: React.FC = () => {
             </p>
             <NavLink
               to="/mentor"
-              className="text-xs sm:text-sm font-medium text-[#7C3AED] dark:text-[#8B5CF6] hover:underline inline-flex items-center gap-1.5"
+              className="text-xs sm:text-sm font-medium text-[#7C3AED] dark:text-[#A78BFA] hover:underline inline-flex items-center gap-1.5"
             >
               Chat with AI Mentor <ArrowRight className="h-3.5 w-3.5" />
             </NavLink>

@@ -31,7 +31,7 @@ export const CareerBlueprintCard: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E7EB] dark:border-[#222222]">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#8B5CF6]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#A78BFA]">
               <Compass className="h-4 w-4" />
             </div>
             <CardTitle className="text-xl font-semibold">AI Career Blueprint</CardTitle>
@@ -68,7 +68,7 @@ export const CareerBlueprintCard: React.FC = () => {
       </div>
 
       {errorMsg && (
-        <div className="p-3.5 rounded-lg border border-red-500/30 bg-red-500/10 text-xs text-red-600 dark:text-red-400 flex items-start gap-2.5">
+        <div role="alert" className="p-3.5 rounded-lg border border-red-500/30 bg-red-500/10 text-xs text-red-600 dark:text-red-400 flex items-start gap-2.5">
           <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
           <div className="space-y-0.5">
             <span className="font-semibold">Blueprint Notice:</span>
@@ -99,7 +99,7 @@ export const CareerBlueprintCard: React.FC = () => {
                 Target Competencies ({blueprint.skills.length})
               </h4>
               <span className="text-xs text-[#6B7280] dark:text-[#888888]">
-                Prioritized by market requirements
+                AI-suggested learning priorities
               </span>
             </div>
 
@@ -139,9 +139,9 @@ export const CareerBlueprintCard: React.FC = () => {
         </div>
       ) : (
         <div className="py-8 text-center space-y-3">
-          <Layers className="h-9 w-9 text-[#9CA3AF] dark:text-[#555555] mx-auto" />
+          <Layers className="h-9 w-9 text-[#6B7280] dark:text-[#A3A3A3] mx-auto" />
           <p className="text-sm text-[#6B7280] dark:text-[#A3A3A3] max-w-md mx-auto">
-            Click "Generate Blueprint" to have the Career Architect decompose your target role into verified core and supporting competencies.
+            Click "Generate Blueprint" to have the Career Architect decompose your target role into suggested core and supporting skills.
           </p>
         </div>
       )}

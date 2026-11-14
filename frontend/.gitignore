@@ -27,3 +27,7 @@ dist-ssr
 .env
 .env*.local
 !.env.example
+
+# Isolated audit test artifacts
+/test-results/
+/playwright-report/

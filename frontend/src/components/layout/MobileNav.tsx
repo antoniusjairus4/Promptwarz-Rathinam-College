@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { NavLink } from 'react-router-dom';
 import { X, Sparkles } from 'lucide-react';
 import { navItems } from './Sidebar';
@@ -11,6 +11,32 @@ export interface MobileNavProps {
 }
 
 export const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose }) => {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!isOpen) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const content = document.getElementById('application-content');
+    const overflow = document.body.style.overflow;
+    content?.setAttribute('inert', '');
+    document.body.style.overflow = 'hidden';
+    const focusable = () => Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], [tabindex="0"]') || []);
+    focusable()[0]?.focus();
+    const keyboard = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.preventDefault(); onClose(); }
+      if (event.key === 'Tab') {
+        const nodes = focusable(), first = nodes[0], last = nodes[nodes.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      }
+    };
+    document.addEventListener('keydown', keyboard);
+    return () => {
+      document.removeEventListener('keydown', keyboard);
+      content?.removeAttribute('inert');
+      document.body.style.overflow = overflow;
+      previous?.focus();
+    };
+  }, [isOpen, onClose]);
   if (!isOpen) return null;
 
   return (
@@ -23,7 +49,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose }) => {
       />
 
       {/* Drawer */}
-      <div className="relative flex w-68 max-w-[80vw] flex-1 flex-col bg-[#FAFAFA] dark:bg-[#050505] border-r border-[#E5E7EB] dark:border-[#222222] p-4 shadow-2xl">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Navigation menu" className="relative flex w-68 max-w-[80vw] flex-1 flex-col bg-[#FAFAFA] dark:bg-[#050505] border-r border-[#E5E7EB] dark:border-[#222222] p-4 shadow-2xl">
         <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB] dark:border-[#222222]">
           <div className="flex items-center gap-2">
             <div className="flex h-6 w-6 items-center justify-center rounded bg-[#111827] dark:bg-[#FAFAFA] text-white dark:text-[#0A0A0A]">
@@ -65,8 +91,8 @@ export const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose }) => {
                       className={cn(
                         'h-4 w-4 shrink-0',
                         isActive
-                          ? 'text-[#7C3AED] dark:text-[#8B5CF6]'
-                          : 'text-[#9CA3AF] dark:text-[#666666]'
+                          ? 'text-[#7C3AED] dark:text-[#A78BFA]'
+                          : 'text-[#6B7280] dark:text-[#A3A3A3]'
                       )}
                     />
                     <span>{item.name}</span>
@@ -83,7 +109,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose }) => {
             onClick={onClose}
             className="flex items-center gap-2 rounded-lg border border-[#E5E7EB] dark:border-[#222222] bg-white dark:bg-[#101010] p-2.5 text-xs font-medium text-[#111827] dark:text-[#FAFAFA]"
           >
-            <Sparkles className="h-4 w-4 text-[#7C3AED] dark:text-[#8B5CF6]" />
+            <Sparkles className="h-4 w-4 text-[#7C3AED] dark:text-[#A78BFA]" />
             <span>Career Onboarding</span>
           </NavLink>
 

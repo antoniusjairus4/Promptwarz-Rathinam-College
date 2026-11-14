@@ -17,7 +17,7 @@ interface ChatTurn {
 }
 
 export const AiMentorPage: React.FC = () => {
-  const { learner, sessionToken, mentorMessages, addMentorMessage } = useLearner();
+  const { learner, mentorMessages, addMentorMessage } = useLearner();
   const [messages, setMessages] = useState<ChatTurn[]>([]);
   const [inputVal, setInputVal] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -26,7 +26,7 @@ export const AiMentorPage: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   };
 
   // Restore existing chat turns from persisted session
@@ -64,7 +64,7 @@ export const AiMentorPage: React.FC = () => {
 
   const handleSend = async (messageText?: string) => {
     const text = (messageText || inputVal).trim();
-    if (!text || isSending) return;
+    if (!text || isSending || !learner) return;
 
     const userTurn: ChatTurn = {
       id: `user-${Date.now()}`,
@@ -78,7 +78,7 @@ export const AiMentorPage: React.FC = () => {
     setIsSending(true);
     setErrorMessage(null);
 
-    const sessionId = learner?.id || sessionToken || 'demo_learner_session';
+    const sessionId = learner!.id;
 
     try {
       const res = await api.sendMentorMessage(sessionId, text);
@@ -112,7 +112,7 @@ export const AiMentorPage: React.FC = () => {
       <div className="flex items-center justify-between border-b border-[#E5E7EB] dark:border-[#222222] pb-4 shrink-0">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#E5E7EB] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#111111] text-[#111827] dark:text-[#FAFAFA] shadow-xs">
-            <Bot className="h-5 w-5 text-[#7C3AED] dark:text-[#8B5CF6]" />
+            <Bot className="h-5 w-5 text-[#7C3AED] dark:text-[#A78BFA]" />
           </div>
           <div>
             <div className="flex items-center gap-2.5">
@@ -182,7 +182,7 @@ export const AiMentorPage: React.FC = () => {
                 }`}
               >
                 {m.role === 'assistant' && (
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#E5E7EB] dark:border-[#262626] bg-[#FAFAFA] dark:bg-[#161616] text-[#7C3AED] dark:text-[#8B5CF6]">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#E5E7EB] dark:border-[#262626] bg-[#FAFAFA] dark:bg-[#161616] text-[#7C3AED] dark:text-[#A78BFA]">
                     <Bot className="h-4 w-4" />
                   </div>
                 )}
@@ -201,7 +201,7 @@ export const AiMentorPage: React.FC = () => {
                   {/* Next Actions suggestions */}
                   {m.nextActions && m.nextActions.length > 0 && (
                     <div className="pt-3 border-t border-[#E5E7EB] dark:border-[#262626] space-y-2">
-                      <span className="text-[11px] font-semibold uppercase tracking-wider text-[#9CA3AF] dark:text-[#666666] block">
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-[#6B7280] dark:text-[#A3A3A3] block">
                         Suggested Inquiries:
                       </span>
                       <div className="flex flex-wrap gap-2">
@@ -212,14 +212,14 @@ export const AiMentorPage: React.FC = () => {
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-[#E5E7EB] dark:border-[#262626] bg-white dark:bg-[#181818] text-[#111827] dark:text-[#FAFAFA] hover:border-[#7C3AED] dark:hover:border-[#8B5CF6] transition-colors cursor-pointer"
                           >
                             <span>{action}</span>
-                            <ArrowRight className="h-3 w-3 text-[#7C3AED] dark:text-[#8B5CF6]" />
+                            <ArrowRight className="h-3 w-3 text-[#7C3AED] dark:text-[#A78BFA]" />
                           </button>
                         ))}
                       </div>
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between text-[10px] text-[#9CA3AF] dark:text-[#666666] pt-1">
+                  <div className="flex items-center justify-between text-[10px] text-[#6B7280] dark:text-[#A3A3A3] pt-1">
                     <span>{m.timestamp}</span>
                     {m.model && <span>{m.model}</span>}
                   </div>
@@ -235,11 +235,11 @@ export const AiMentorPage: React.FC = () => {
 
             {isSending && (
               <div className="flex gap-3 text-sm justify-start">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#E5E7EB] dark:border-[#262626] bg-[#FAFAFA] dark:bg-[#161616] text-[#7C3AED] dark:text-[#8B5CF6]">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#E5E7EB] dark:border-[#262626] bg-[#FAFAFA] dark:bg-[#161616] text-[#7C3AED] dark:text-[#A78BFA]">
                   <Bot className="h-4 w-4" />
                 </div>
                 <div className="p-4 rounded-xl bg-[#FAFAFA] dark:bg-[#101010] border border-[#E5E7EB] dark:border-[#222222] text-xs text-[#6B7280] dark:text-[#888888] flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin text-[#7C3AED] dark:text-[#8B5CF6]" />
+                  <Loader2 className="h-4 w-4 animate-spin text-[#7C3AED] dark:text-[#A78BFA]" />
                   <span>Adaptive Mentor is reasoning about your inquiry...</span>
                 </div>
               </div>
@@ -251,7 +251,7 @@ export const AiMentorPage: React.FC = () => {
       </div>
 
       {errorMessage && (
-        <div className="p-3.5 rounded-xl border border-red-500/30 bg-red-500/10 text-xs text-red-600 dark:text-red-400 flex items-start gap-2.5">
+        <div role="alert" className="p-3.5 rounded-xl border border-red-500/30 bg-red-500/10 text-xs text-red-600 dark:text-red-400 flex items-start gap-2.5">
           <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
           <div className="space-y-0.5">
             <span className="font-semibold">Mentor Relay Notice:</span>
@@ -260,6 +260,7 @@ export const AiMentorPage: React.FC = () => {
         </div>
       )}
 
+      {!learner && <p role="status">Complete Career Onboarding to start a contextual mentor conversation.</p>}
       {/* Input Bar */}
       <form
         onSubmit={(e) => {
@@ -272,6 +273,7 @@ export const AiMentorPage: React.FC = () => {
           type="text"
           value={inputVal}
           onChange={(e) => setInputVal(e.target.value)}
+          aria-label="Ask Adaptive Mentor about your roadmap, coding challenges, or technical trade-offs..."
           placeholder="Ask Adaptive Mentor about your roadmap, coding challenges, or technical trade-offs..."
           className="flex-1 bg-transparent px-3 py-2 text-sm text-[#111827] dark:text-[#FAFAFA] placeholder-[#9CA3AF] focus-visible:outline-none"
         />
@@ -279,7 +281,7 @@ export const AiMentorPage: React.FC = () => {
           type="submit"
           size="md"
           variant="primary"
-          disabled={!inputVal.trim() || isSending}
+          disabled={!learner || !inputVal.trim() || isSending}
           className="gap-2 text-xs font-medium h-10 px-5 cursor-pointer shadow-xs"
         >
           {isSending ? (

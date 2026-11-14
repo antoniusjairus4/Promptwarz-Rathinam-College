@@ -63,7 +63,7 @@ export const CareerNavigatorPage: React.FC = () => {
   if (!learner) {
     return (
       <div className="max-w-[1000px] mx-auto py-12 text-center space-y-6">
-        <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-500">
+        <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-700 dark:text-amber-500">
           <AlertCircle className="h-8 w-8" />
         </div>
         <div className="space-y-2">
@@ -150,7 +150,7 @@ export const CareerNavigatorPage: React.FC = () => {
       {blueprint && (
         <div className="rounded-xl border border-[#E5E7EB] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#070707] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#8B5CF6]">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#A78BFA]">
               <Compass className="h-4 w-4" />
             </div>
             <div>
@@ -158,7 +158,7 @@ export const CareerNavigatorPage: React.FC = () => {
               <span className="text-[#6B7280] dark:text-[#A3A3A3]">{blueprint.rationale.slice(0, 120)}...</span>
             </div>
           </div>
-          <NavLink to="/dashboard" className="text-[#7C3AED] dark:text-[#8B5CF6] hover:underline font-medium shrink-0">
+          <NavLink to="/dashboard" className="text-[#7C3AED] dark:text-[#A78BFA] hover:underline font-medium shrink-0">
             View Full Blueprint →
           </NavLink>
         </div>
@@ -167,7 +167,7 @@ export const CareerNavigatorPage: React.FC = () => {
       {/* STATE 1: Empty Roadmap */}
       {!roadmap && !isLoading && (
         <div className="rounded-xl border border-[#E5E7EB] dark:border-[#222222] bg-white dark:bg-[#0A0A0A] p-12 text-center space-y-6 shadow-xs">
-          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#8B5CF6]">
+          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#7C3AED]/10 text-[#7C3AED] dark:text-[#A78BFA]">
             <Compass className="h-7 w-7" />
           </div>
           <div className="space-y-2 max-w-md mx-auto">
@@ -205,7 +205,7 @@ export const CareerNavigatorPage: React.FC = () => {
       {/* STATE 2: Generating */}
       {isLoading && (
         <div className="rounded-xl border border-[#E5E7EB] dark:border-[#222222] bg-white dark:bg-[#0A0A0A] p-12 text-center space-y-6 shadow-xs">
-          <Loader2 className="h-10 w-10 text-[#7C3AED] dark:text-[#8B5CF6] animate-spin mx-auto" />
+          <Loader2 className="h-10 w-10 text-[#7C3AED] dark:text-[#A78BFA] animate-spin mx-auto" />
           <div className="space-y-2 max-w-md mx-auto">
             <h3 className="text-lg font-semibold text-[#111827] dark:text-[#FAFAFA]">
               Architecting Adaptive Roadmap
@@ -224,7 +224,7 @@ export const CareerNavigatorPage: React.FC = () => {
           <div className="rounded-xl border border-[#E5E7EB] dark:border-[#222222] bg-white dark:bg-[#0A0A0A] p-6 space-y-4 shadow-xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-1">
-                <span className="text-xs font-mono uppercase text-[#7C3AED] dark:text-[#8B5CF6]">
+                <span className="text-xs font-mono uppercase text-[#7C3AED] dark:text-[#A78BFA]">
                   Pathway Summary
                 </span>
                 <p className="text-sm sm:text-base text-[#111827] dark:text-[#FAFAFA] font-medium leading-relaxed max-w-3xl">
@@ -353,7 +353,7 @@ export const CareerNavigatorPage: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <NavLink
                           to={`/learning?q=${encodeURIComponent(step.skill)}`}
-                          className="text-xs text-[#7C3AED] dark:text-[#8B5CF6] hover:underline inline-flex items-center gap-1 font-medium"
+                          className="text-xs text-[#7C3AED] dark:text-[#A78BFA] hover:underline inline-flex items-center gap-1 font-medium"
                         >
                           <BookOpen className="h-3.5 w-3.5" />
                           <span>Find Curated Resources for {step.skill}</span>
@@ -385,13 +385,13 @@ export const CareerNavigatorPage: React.FC = () => {
 
                         {isCompleted && (
                           <span className="text-xs text-emerald-700 dark:text-emerald-400 font-medium inline-flex items-center gap-1">
-                            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                            <CheckCircle2 className="h-4 w-4 text-emerald-700" />
                             <span>Learner-verified completed</span>
                           </span>
                         )}
 
                         {isLocked && (
-                          <span className="text-xs text-[#9CA3AF] dark:text-[#666666] inline-flex items-center gap-1">
+                          <span className="text-xs text-[#6B7280] dark:text-[#A3A3A3] inline-flex items-center gap-1">
                             <Lock className="h-3.5 w-3.5" />
                             <span>Locked by prerequisites</span>
                           </span>
