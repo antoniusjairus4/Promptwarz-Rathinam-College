@@ -31,7 +31,7 @@ import type {
  * 3. Never call third-party LLMs directly from browser.
  * 4. Never fabricate mock data on error — backend is the single source of truth.
  * 5. Production safe: never defaults to localhost in production builds.
- * 6. Extended timeouts (up to 360s) for AI worker generation workflows.
+ * 6. Bounded 25-second timeouts for backend requests.
  */
 
 const getBaseUrl = (): string => {
@@ -45,7 +45,7 @@ const getBaseUrl = (): string => {
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: getBaseUrl(),
-  timeout: 10000, // Fail promptly when the backend or tunnel is unreachable
+  timeout: 25000, // Allow slow tunnel responses while keeping requests bounded
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
@@ -91,7 +91,7 @@ apiClient.interceptors.response.use(
       friendlyMessage = data.message;
     } else if (error.code === 'ECONNABORTED') {
       friendlyMessage =
-        'The operation timed out. AI generation may still be finishing on the backend; session state will restore on refresh.';
+        'The request timed out after 25 seconds. Please retry. AI generation may still finish on the backend; refresh to restore session state.';
     } else if (error.message) {
       friendlyMessage = error.message;
     }
@@ -105,27 +105,32 @@ async function request<T>(config: AxiosRequestConfig): Promise<T> {
   return response.data;
 }
 
+let healthRequest: Promise<HealthCheckResponse> | null = null;
+let statusRequest: Promise<SystemStatusResponse> | null = null;
+
 export const api = {
   /**
    * Health check endpoint: GET /api/health
    */
   async getHealth(): Promise<HealthCheckResponse> {
-    return request<HealthCheckResponse>({
-      method: 'GET',
-      url: '/api/health',
-      timeout: 10000,
-    });
+    if (!healthRequest) {
+      healthRequest = request<HealthCheckResponse>({
+        method: 'GET', url: '/api/health',
+      }).finally(() => { healthRequest = null; });
+    }
+    return healthRequest;
   },
 
   /**
    * Backend storage status: GET /api/v1/status
    */
   async getStatus(): Promise<SystemStatusResponse> {
-    return request<SystemStatusResponse>({
-      method: 'GET',
-      url: '/api/v1/status',
-      timeout: 10000,
-    });
+    if (!statusRequest) {
+      statusRequest = request<SystemStatusResponse>({
+        method: 'GET', url: '/api/v1/status',
+      }).finally(() => { statusRequest = null; });
+    }
+    return statusRequest;
   },
 
   /**
@@ -168,7 +173,7 @@ export const api = {
       method: 'POST',
       url: '/api/career/blueprint',
       data: { session_id: sessionId },
-      timeout: 10000,
+      timeout: 25000,
     });
   },
 
@@ -180,7 +185,7 @@ export const api = {
       method: 'POST',
       url: '/api/profile/analyze',
       data: { session_id: sessionId },
-      timeout: 10000,
+      timeout: 25000,
     });
   },
 
@@ -197,13 +202,13 @@ export const api = {
 
   /**
    * Step 2: Request Assessment: POST /api/v1/learners/{learner_id}/assessments
-   * Assessment generation can take up to 360s when utilizing fallback providers.
+   * Assessment generation uses the same bounded request timeout.
    */
   async createAssessment(learnerId: string): Promise<AssessmentResponse> {
     return request<AssessmentResponse>({
       method: 'POST',
       url: `/api/v1/learners/${learnerId}/assessments`,
-      timeout: 10000,
+      timeout: 25000,
     });
   },
 
@@ -250,7 +255,7 @@ export const api = {
       method: 'POST',
       url: '/api/roadmap/generate',
       data: { session_id: learnerId, refresh },
-      timeout: 10000,
+      timeout: 25000,
     });
   },
 
@@ -347,7 +352,7 @@ export const api = {
   },
 
   async saveGithubEvidence(sessionId: string, target: string): Promise<void> {
-    await request({ method: 'POST', url: '/api/github/analyze', data: { session_id: sessionId, target }, timeout: 10000 });
+    await request({ method: 'POST', url: '/api/github/analyze', data: { session_id: sessionId, target }, timeout: 25000 });
   },
 
   /**
@@ -366,7 +371,7 @@ export const api = {
       url: `/api/v1/integrations/github/${owner}/${repo}${
         paths.length > 0 ? `?${params.toString()}` : ''
       }`,
-      timeout: 10000,
+      timeout: 25000,
     });
   },
 
@@ -381,7 +386,7 @@ export const api = {
         session_id: sessionId,
         message,
       },
-      timeout: 10000,
+      timeout: 25000,
     });
   },
 };

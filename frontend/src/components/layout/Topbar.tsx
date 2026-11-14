@@ -68,6 +68,7 @@ export const Topbar: React.FC<TopbarProps> = ({ onMenuToggle }) => {
               ? `Backend service: ${healthStatus} (checked ${lastChecked})`
               : `Backend service: ${healthStatus}`
           }
+          role="status" aria-live="polite"
           className="flex items-center gap-2 rounded-lg border border-[#E5E7EB] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#0A0A0A] px-3 py-1.5 text-xs"
         >
           <Activity className="h-3.5 w-3.5 text-[#6B7280] dark:text-[#A3A3A3]" />
@@ -89,7 +90,7 @@ export const Topbar: React.FC<TopbarProps> = ({ onMenuToggle }) => {
           {healthStatus === 'offline' && (
             <span className="flex items-center gap-1.5 text-[#6B7280] dark:text-[#737373] font-medium">
               <span className="h-1.5 w-1.5 rounded-full bg-[#9CA3AF] dark:bg-[#555555]"></span>
-              API Standby
+              API unavailable — retry
             </span>
           )}
 

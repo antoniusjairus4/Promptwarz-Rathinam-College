@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '@/services/api';
 import type { HealthCheckResponse } from '@/types';
 
@@ -7,7 +7,11 @@ export function useHealthCheck(pollIntervalMs?: number) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const inFlight = useRef(false);
+
   const check = useCallback(async () => {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setIsLoading(true);
     setError(null);
     try {
@@ -20,6 +24,7 @@ export function useHealthCheck(pollIntervalMs?: number) {
         setError('Health check failed');
       }
     } finally {
+      inFlight.current = false;
       setIsLoading(false);
     }
   }, []);
