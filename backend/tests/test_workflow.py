@@ -16,9 +16,10 @@ class TestGenerator:
         if schema is CareerContext:
             data = {"target_role": "Backend Engineer", "skills": ["Python", "HTTP", "SQL"], "rationale": "Test fixture"}
         elif schema is AssessmentDraft:
-            data = {"questions": [{"skill": skill, "prompt": f"Test question about {skill}", "options": ["A", "B", "C", "D"], "correct_index": index, "rationale": "Private fixture rationale", "difficulty": "beginner"} for index, skill in enumerate(["Python", "HTTP", "SQL"])]}
+            self.assessments = getattr(self, "assessments", 0) + 1
+            data = {"questions": [{"skill": skill, "prompt": f"Test question about {skill} attempt {self.assessments}", "options": ["A", "B", "C", "D"], "correct_index": index, "rationale": "Private fixture rationale", "difficulty": "beginner"} for index, skill in enumerate(["Python", "HTTP", "SQL"])]}
         else:
-            data = {"summary": "Test roadmap", "steps": [{"title": skill + " practice", "skill": skill, "objective": "Practice this skill", "practice_task": "Complete the practice exercise", "estimated_hours": 2} for skill in ["Python", "HTTP", "SQL"]]}
+            data = {"summary": "Test roadmap", "steps": [{"title": skill + " practice", "skill": skill, "objective": "Practice this skill", "practice_task": f"Complete the {skill} exercise after quiz {getattr(self, 'assessments', 0)}", "estimated_hours": 2} for skill in ["Python", "HTTP", "SQL"]]}
         return schema.model_validate(data), "test_provider", "test_model"
 
 

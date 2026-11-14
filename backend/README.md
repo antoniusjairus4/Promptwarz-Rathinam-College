@@ -2,6 +2,8 @@
 
 Vercel deployment configuration and limitations: [VERCEL.md](VERCEL.md). Deploy with `backend` as the project root; the existing local startup command remains unchanged.
 
+Phase 2 reliability: hosted calls attempt each configured provider once, with a default 30-second wall-clock timeout and a 120-second AI budget shared by agents in one HTTP request (`LLM_TIMEOUT_SECONDS`, `AI_REQUEST_BUDGET_SECONDS`). Existing private environment overrides remain effective. NVIDIA remains primary; `gemini-3.5-flash` is the tested Gemini fallback. Read [PHASE2.md](PHASE2.md) for evidence boundaries and actual verification results.
+
 FastAPI + Pydantic + LangGraph MVP for onboarding → AI assessment → adaptive roadmap. Hosted NVIDIA inference is primary, with configured Gemini and OpenAI fallbacks. No local LLMs, unsandboxed code execution, fake AI output, or fabricated learning resources are used.
 
 From the repository root:

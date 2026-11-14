@@ -27,7 +27,7 @@ class Repository(Protocol):
 
 
 class MemoryRepository:
-    def __init__(self, reason: str = "Explicit in-memory demo mode; data is lost on restart"):
+    def __init__(self, reason: str = "Temporary process-local storage; lost on restart and not shared across serverless instances"):
         self.status = StorageStatus(mode="memory", durable=False, reason=reason)
         self._documents: dict[str, dict[str, Any]] = {}
         self._lock = RLock()
@@ -119,6 +119,9 @@ def build_repository(settings: Settings) -> Repository:
                 serverSelectionTimeoutMS=settings.mongodb_timeout_ms,
                 connectTimeoutMS=settings.mongodb_timeout_ms,
                 socketTimeoutMS=settings.mongodb_timeout_ms,
+                maxPoolSize=10,
+                minPoolSize=0,
+                waitQueueTimeoutMS=settings.mongodb_timeout_ms,
             )
             client.admin.command("ping")
             return MongoRepository(client, settings.mongodb_database)
@@ -128,5 +131,5 @@ def build_repository(settings: Settings) -> Repository:
             if client is not None:
                 client.close()
     if settings.storage_backend == "auto" and settings.allow_memory_fallback:
-        return MemoryRepository(reason + "; temporary data is lost on restart")
+        return MemoryRepository(reason + "; temporary process-local data is lost on restart and not shared across serverless instances")
     return UnavailableRepository(reason)

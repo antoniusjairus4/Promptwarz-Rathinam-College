@@ -143,12 +143,13 @@ async def jobs(request: Request, svc: Service, credentials: OptionalCredential, 
     result = await request.app.state.external.jobs(query[:100], provider, limit)
     matches = []
     if document:
-        skills = list(dict.fromkeys([s["skill"] for s in document["learner"]["skills"]] + [s["name"] for s in (document.get("blueprint") or {}).get("skills", [])]))
-        scores = (document.get("result") or {}).get("skill_scores", {})
+        # Blueprint goals are learning targets, not skills the learner already has.
+        skills = list(dict.fromkeys(s["skill"] for s in document["learner"]["skills"]))
+        scores = {s.casefold(): score for s, score in (document.get("result") or {}).get("skill_scores", {}).items()}
         for job in result.jobs:
             text = " ".join([job.title, job.summary, *job.tags]).casefold()
             matched = [skill for skill in skills if re.search(r"(?<!\w)" + re.escape(skill.casefold()) + r"(?!\w)", text)]
-            matches.append(MatchedJob(job_id=job.id, matched_terms=matched, assessment_supported_terms=[s for s in matched if scores.get(s, 0) >= 70]))
+            matches.append(MatchedJob(job_id=job.id, matched_terms=matched, assessment_supported_terms=[s for s in matched if scores.get(s.casefold(), 0) >= 70]))
         ranks = {m.job_id: len(m.matched_terms) for m in matches}
         result.jobs.sort(key=lambda j: ranks[j.id], reverse=True)
         matches.sort(key=lambda m: len(m.matched_terms), reverse=True)

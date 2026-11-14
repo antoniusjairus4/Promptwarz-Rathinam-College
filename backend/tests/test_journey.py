@@ -10,7 +10,7 @@ from app.core.config import Settings
 from app.db.repository import MemoryRepository
 from app.main import create_app
 from app.models.journey import BlueprintDraft, MentorDraft, ProfileDraft
-from app.models.workflow import CareerContext
+from app.models.workflow import CareerContext, AssessmentDraft
 from app.services.external import ExternalServices
 from app.services.inference import InferenceUnavailable
 from test_workflow import TestGenerator
@@ -118,8 +118,9 @@ def test_complete_session_journey(client):
     assert {e["agent"] for e in state["events"]} == {"Skill Detective", "Career Architect", "Assessment Architect", "Learning Curator", "Adaptive Mentor"}
     assert all(e["status"] in {"started", "completed"} for e in state["events"])
     payloads = client.app.state.workflow.generator.payloads
-    assessment_context = next(payload for schema, payload in payloads if schema is CareerContext)
-    assert assessment_context["additional_evidence"]["github_repositories"]
+    assert not any(schema is CareerContext for schema, payload in payloads)
+    assessment_context = next(payload for schema, payload in payloads if schema is AssessmentDraft)
+    assert assessment_context["source_observations"]
     mentor_context = next(payload for schema, payload in payloads if schema is MentorDraft)
     assert mentor_context["completed_practice"] and mentor_context["github_evidence"]
     assert mentor_context["assessment_result"]["gaps"] == ["HTTP", "SQL"]
@@ -153,6 +154,12 @@ def test_failed_refresh_preserves_genuine_evidence(client):
     state = client.get("/api/sessions/" + sid, headers=headers).json()
     assert state["github_repositories"]
     assert state["events"][-1]["status"] == "failed"
+    # An upstream recovery produces real observations again, without restarting the app.
+    client.portal.call(svc.client.aclose)
+    svc.client = httpx.AsyncClient(transport=httpx.MockTransport(github_handler))
+    svc.cooldowns.clear()  # Simulate expiry of the bounded provider cooldown.
+    assert client.post("/api/github/analyze", headers=headers, json=body).json()["repositories"]
+    assert client.get("/api/sessions/" + sid, headers=headers).json()["events"][-1]["status"] == "completed"
 
 
 def test_mentor_failure_has_no_canned_reply(client):
@@ -189,7 +196,7 @@ def test_resources_and_matching_use_actual_session_skills(client):
     assert next(p for p in data["providers"] if p["provider"] == "adzuna")["status"] == "not_configured"
 
 
-def test_primary_inference_retry_and_configured_fallback(monkeypatch):
+def test_primary_inference_uses_fallback_without_retry(monkeypatch):
     from app.services.inference import HostedGenerator
     from app.models.workflow import CareerContext
     settings = Settings(_env_file=None, nvidia_api_key="test-nvidia", nvidia_model="test-model", gemini_api_key="test-gemini", gemini_model="test-fallback", primary_llm_provider="nvidia")
@@ -202,9 +209,8 @@ def test_primary_inference_retry_and_configured_fallback(monkeypatch):
             raise TimeoutError()
         return content
     monkeypatch.setattr(generator, "_request", transient)
-    monkeypatch.setattr("app.services.inference.time.sleep", lambda _: None)
     result, provider, _ = generator.generate("test", {}, CareerContext)
-    assert provider == "nvidia" and calls == ["nvidia", "nvidia"]
+    assert provider == "gemini" and calls == ["nvidia", "gemini"]
     assert generator.last_failures == [{"provider": "nvidia", "category": "TimeoutError", "http_status": None}]
     calls.clear()
     class Denied(Exception):

@@ -71,7 +71,7 @@ class GeneratedQuestion(StrictModel):
 
     @model_validator(mode="after")
     def distinct_options(self):
-        if len(set(self.options)) != 4:
+        if len({option.casefold() for option in self.options}) != 4:
             raise ValueError("Options must be distinct")
         return self
 

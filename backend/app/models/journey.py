@@ -1,6 +1,6 @@
 """Session journey contracts; private repository documents are never serialized directly."""
 from typing import Annotated, Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from app.models.workflow import (
     AgentEvent, Assessment, AssessmentResult, Learner, LongText, OnboardingRequest,
@@ -28,6 +28,12 @@ class BlueprintDraft(StrictModel):
     target_role: Text
     rationale: LongText
     skills: list[BlueprintSkill] = Field(min_length=3, max_length=8)
+
+    @model_validator(mode="after")
+    def distinct_skills(self):
+        if len({skill.name.casefold() for skill in self.skills}) != len(self.skills):
+            raise ValueError("Blueprint skills must be distinct")
+        return self
 
 
 class Blueprint(BlueprintDraft):

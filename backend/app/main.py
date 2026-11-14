@@ -1,6 +1,7 @@
 """Maximus API: credential-independent liveness and a versioned learning workflow."""
 from contextlib import asynccontextmanager
 from typing import Literal
+import time
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,7 +14,7 @@ from app.api.integrations import router as integrations_router
 from app.services.external import ExternalServices
 from app.core.config import Settings
 from app.db.repository import Conflict, Repository, StorageUnavailable, build_repository
-from app.services.inference import Generator, HostedGenerator, InferenceUnavailable
+from app.services.inference import Generator, HostedGenerator, InferenceUnavailable, inference_deadline
 from app.services.journey import JourneyService
 from app.api.journey import router as journey_router
 
@@ -37,6 +38,16 @@ def create_app(settings: Settings | None = None, repository: Repository | None =
             repo.close()
 
     application = FastAPI(title="Maximus API", version="0.4.0", lifespan=lifespan)
+
+    @application.middleware("http")
+    async def bound_ai_work(request: Request, call_next):
+        # Context propagates into FastAPI's worker threads and all sequential agents.
+        token = inference_deadline.set(time.monotonic() + settings.ai_request_budget_seconds)
+        try:
+            return await call_next(request)
+        finally:
+            inference_deadline.reset(token)
+
     application.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,

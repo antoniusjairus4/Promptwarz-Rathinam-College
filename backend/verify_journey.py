@@ -8,18 +8,15 @@ import time
 import httpx
 
 
-def verify(base_url):
+def verify(base_url, track="career_first"):
     start = time.monotonic()
     with httpx.Client(base_url=base_url, timeout=180) as client:
         def call(method, path, **kwargs):
             response = client.request(method, path, **kwargs)
             print(f"{method} {path.split('?')[0]}: HTTP {response.status_code}", flush=True)
             if response.status_code == 503:
-                print("Transient AI/storage failure; retrying this same operation once without replacing session data.", flush=True)
+                print("AI/storage unavailable; no automatic client retry.", flush=True)
                 print("Safe provider diagnostics:", response.json().get("provider_failures", []), flush=True)
-                time.sleep(1)
-                response = client.request(method, path, **kwargs)
-                print(f"Retry {method} {path.split('?')[0]}: HTTP {response.status_code}", flush=True)
             if not response.is_success:
                 # Do not dump request/response data or SDK exceptions.
                 raise RuntimeError(f"Live verification failed: HTTP {response.status_code}")
@@ -27,7 +24,7 @@ def verify(base_url):
         call("GET", "/api/health")
         preflight = client.options("/api/sessions", headers={"Origin": "http://localhost:5173", "Access-Control-Request-Method": "POST"})
         assert preflight.headers.get("access-control-allow-origin") == "http://localhost:5173"
-        created = call("POST", "/api/sessions", json={"full_name": "Integration verification", "track": "career_first", "target_role": "Python Backend Engineer", "skills": ["Python"], "interests": ["APIs"], "weekly_hours": 5})
+        created = call("POST", "/api/sessions", json={"full_name": "Integration verification", "track": track, "target_role": "Python Backend Engineer" if track == "career_first" else None, "skills": ["Python"], "interests": ["APIs"], "weekly_hours": 5})
         sid = created["session_id"]
         client.headers["Authorization"] = "Bearer " + created["session_token"]
         action = {"session_id": sid}
@@ -59,10 +56,13 @@ def verify(base_url):
         assert "token_hash" not in session and "keys" not in session
         assert session["roadmap"]["steps"][0]["status"] == "completed"
         print("Genuine agent events:", len(session["events"]), flush=True)
-        print("LIVE JOURNEY PASS; duration seconds:", round(time.monotonic() - start, 1), flush=True)
+        print("LIVE JOURNEY PASS; track:", track, "duration seconds:", round(time.monotonic() - start, 1), flush=True)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--base-url", default="http://127.0.0.1:8000")
-    verify(parser.parse_args().base_url)
+    parser.add_argument("--track", choices=["career_first", "skills_first", "both"], default="career_first")
+    args = parser.parse_args()
+    for track in (["career_first", "skills_first"] if args.track == "both" else [args.track]):
+        verify(args.base_url, track)

@@ -51,7 +51,8 @@ class WorkflowService:
             raise HTTPException(429, "Demo limit: 10 assessments per learner")
         operation_id = new_id()
         try:
-            state = assessment_graph(self.generator, document["events"], operation_id).invoke({"learner": document["learner"], "evidence": {"blueprint": document.get("blueprint"), "github_repositories": document.get("github_repositories", []), "previous_results": (document.get("assessment_history", []) + ([document["result"]] if document["result"] else []))[-5:]}})
+            previous_questions = document.get("assessment_prompts", []) or [q["prompt"] for q in (document.get("assessment") or {}).get("public", {}).get("questions", [])]
+            state = assessment_graph(self.generator, document["events"], operation_id).invoke({"learner": document["learner"], "evidence": {"blueprint": document.get("blueprint"), "github_repositories": document.get("github_repositories", []), "previous_results": (document.get("assessment_history", []) + ([document["result"]] if document["result"] else []))[-5:], "previous_questions": previous_questions}})
         except InferenceUnavailable:
             self._save(document)
             raise
@@ -67,9 +68,11 @@ class WorkflowService:
         if document["result"]:
             document["assessment_history"] = (document.get("assessment_history", []) + [document["result"]])[-5:]
         document["assessment"] = {"public": public, "keys": keys, "rationales": rationales}
+        document["assessment_prompts"] = (previous_questions + [q.prompt for q in questions])[-30:]
         document["assessment_count"] += 1
         document["result"] = None
         document["roadmap"] = None
+        document["profile_analysis"] = None
         self._save(document)
         return public
 
@@ -95,6 +98,7 @@ class WorkflowService:
         scores = {skill: round(100 * hits / total, 2) for skill, (hits, total) in counts.items()}
         result = AssessmentResult(assessment_id=assessment_id, score=round(100 * correct / len(keys), 2), correct=correct, total=len(keys), skill_scores=scores, submitted_at=now(), explanations=feedback, demonstrated_strengths=[s for s, v in scores.items() if v >= 70], gaps=[s for s, v in scores.items() if v < 70], quiz_verification=[QuizVerification(skill=s, score=v, passed=v >= 70) for s, v in scores.items()])
         document["result"] = result.model_dump()
+        document["profile_analysis"] = None
         document["assessment"]["public"]["submitted"] = True
         document["learner"]["skills"] = [s for s in document["learner"]["skills"] if s["provenance"] == "self_reported"] + [SkillEvidence(skill=skill, provenance="assessment_observed", score=score, assessment_id=assessment_id, note="Observed on this AI-generated quiz only; not independent verification").model_dump() for skill, score in scores.items()]
         self._save(document)
@@ -113,7 +117,8 @@ class WorkflowService:
             raise
         steps = []
         for step in state["draft"].steps:
-            steps.append(RoadmapStep(**step.model_dump(), id=new_id(), status="locked" if steps else "available", gap_priority="high" if document["result"]["skill_scores"].get(step.skill, 0) < 50 else "medium" if document["result"]["skill_scores"].get(step.skill, 0) < 70 else "low", prerequisites=[steps[-1].id] if steps else []))
+            score = document["result"]["skill_scores"].get(step.skill)
+            steps.append(RoadmapStep(**step.model_dump(), id=new_id(), status="locked" if steps else "available", gap_priority="medium" if score is None else "high" if score < 50 else "medium" if score < 70 else "low", prerequisites=[steps[-1].id] if steps else []))
         roadmap = Roadmap(id=operation_id, learner_id=document["_id"], assessment_id=document["result"]["assessment_id"], target_role=document["assessment"]["public"]["target_role"], summary=state["draft"].summary, steps=steps, provider=state["provider"], model=state["model"], created_at=now(), revision=(document.get("roadmap") or {}).get("revision", 0) + 1)
         document["roadmap"] = roadmap.model_dump()
         self._save(document)
