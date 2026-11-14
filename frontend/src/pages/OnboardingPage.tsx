@@ -1,22 +1,60 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Compass, Sparkles, ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { Compass, Sparkles, ArrowRight, CheckCircle2, ShieldCheck, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { useLearner } from '@/context/LearnerContext';
 
 export const OnboardingPage: React.FC = () => {
   const navigate = useNavigate();
+  const { onboard, isLoading } = useLearner();
+
   const [selectedTrack, setSelectedTrack] = useState<'career' | 'skills'>('career');
+  const [fullName, setFullName] = useState('Learner');
   const [careerInput, setCareerInput] = useState('');
   const [skillsInput, setSkillsInput] = useState('');
-
-  const handleContinue = () => {
-    // Navigate to dashboard after calibration selection
-    navigate('/dashboard');
-  };
+  const [experienceLevel, setExperienceLevel] = useState<'entry' | 'mid' | 'senior'>('entry');
+  const [weeklyHours, setWeeklyHours] = useState(5);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const isFormValid =
-    (selectedTrack === 'career' && careerInput.trim().length > 0) ||
-    (selectedTrack === 'skills' && skillsInput.trim().length > 0);
+    fullName.trim().length > 0 &&
+    ((selectedTrack === 'career' && careerInput.trim().length > 0) ||
+      (selectedTrack === 'skills' && skillsInput.trim().length > 0));
+
+  const handleContinue = async () => {
+    if (!isFormValid) return;
+    setSubmitError(null);
+
+    const parsedSkills = skillsInput
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+
+    try {
+      if (selectedTrack === 'career') {
+        await onboard({
+          full_name: fullName.trim(),
+          track: 'career_first',
+          target_role: careerInput.trim(),
+          skills: parsedSkills,
+          experience_level: experienceLevel,
+          weekly_hours: Number(weeklyHours) || 5,
+        });
+      } else {
+        await onboard({
+          full_name: fullName.trim(),
+          track: 'skills_first',
+          skills: parsedSkills.length > 0 ? parsedSkills : ['General Engineering'],
+          experience_level: experienceLevel,
+          weekly_hours: Number(weeklyHours) || 5,
+        });
+      }
+      navigate('/dashboard');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Onboarding failed. Please try again.';
+      setSubmitError(msg);
+    }
+  };
 
   return (
     <div className="max-w-[1100px] mx-auto py-6 sm:py-10 space-y-10">
@@ -31,6 +69,59 @@ export const OnboardingPage: React.FC = () => {
         <p className="text-base sm:text-lg text-[#737373] dark:text-[#A3A3A3] max-w-2xl leading-relaxed">
           Maximus creates an adaptive competency graph tailored either to an aspirational career target or to your existing technical stack. Choose how you want to start.
         </p>
+      </div>
+
+      {submitError && (
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-600 dark:text-red-400 flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <p className="font-semibold">Unable to Complete Calibration</p>
+            <p>{submitError}</p>
+          </div>
+        </div>
+      )}
+
+      {/* User Basic Info Form */}
+      <div className="rounded-xl border border-[#E5E5E5] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#0A0A0A] p-6 space-y-4">
+        <h3 className="text-sm font-semibold text-[#171717] dark:text-[#FAFAFA]">Learner Information</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-[#666666] dark:text-[#A3A3A3]">Full Name</label>
+            <input
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="e.g. Alex Mercer"
+              className="w-full h-10 rounded-md border border-[#E5E5E5] dark:border-[#262626] bg-white dark:bg-[#050505] px-3.5 text-sm text-[#171717] dark:text-[#FAFAFA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]/50"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-[#666666] dark:text-[#A3A3A3]">Experience Level</label>
+            <select
+              value={experienceLevel}
+              onChange={(e) => setExperienceLevel(e.target.value as 'entry' | 'mid' | 'senior')}
+              className="w-full h-10 rounded-md border border-[#E5E5E5] dark:border-[#262626] bg-white dark:bg-[#050505] px-3.5 text-sm text-[#171717] dark:text-[#FAFAFA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]/50"
+            >
+              <option value="entry">Entry Level (&lt; 2 yrs)</option>
+              <option value="mid">Mid Level (2–5 yrs)</option>
+              <option value="senior">Senior Level (5+ yrs)</option>
+            </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-[#666666] dark:text-[#A3A3A3]">Weekly Learning Commitment</label>
+            <select
+              value={weeklyHours}
+              onChange={(e) => setWeeklyHours(Number(e.target.value))}
+              className="w-full h-10 rounded-md border border-[#E5E5E5] dark:border-[#262626] bg-white dark:bg-[#050505] px-3.5 text-sm text-[#171717] dark:text-[#FAFAFA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]/50"
+            >
+              <option value={5}>5 hours / week (Focused pace)</option>
+              <option value={10}>10 hours / week (Accelerated)</option>
+              <option value={20}>20+ hours / week (Intensive)</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* Two Substantial Trajectory Panels */}
@@ -79,7 +170,7 @@ export const OnboardingPage: React.FC = () => {
               type="text"
               value={careerInput}
               onChange={(e) => setCareerInput(e.target.value)}
-              placeholder="e.g. Distributed Systems Engineer, Platform Lead"
+              placeholder="e.g. Distributed Systems Engineer, Platform Lead, Python Backend"
               className="w-full h-11 rounded-md border border-[#E5E5E5] dark:border-[#262626] bg-white dark:bg-[#050505] px-4 text-sm text-[#171717] dark:text-[#FAFAFA] placeholder-[#8C8C8C] dark:placeholder-[#555555] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]/50 transition-colors"
             />
             <p className="text-xs text-[#8C8C8C] dark:text-[#666666]">
@@ -160,11 +251,20 @@ export const OnboardingPage: React.FC = () => {
           size="lg"
           variant="primary"
           onClick={handleContinue}
-          disabled={!isFormValid}
-          className="w-full sm:w-auto h-12 px-8 text-base font-medium gap-2 shadow-xs"
+          disabled={!isFormValid || isLoading}
+          className="w-full sm:w-auto h-12 px-8 text-base font-medium gap-2 shadow-xs cursor-pointer"
         >
-          <span>Continue to Workspace</span>
-          <ArrowRight className="h-4 w-4" />
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Calibrating with Backend...</span>
+            </>
+          ) : (
+            <>
+              <span>Continue to Workspace</span>
+              <ArrowRight className="h-4 w-4" />
+            </>
+          )}
         </Button>
       </div>
 

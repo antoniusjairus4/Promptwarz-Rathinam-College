@@ -1,335 +1,549 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { NavLink } from 'react-router-dom';
 import {
   Terminal,
-  Play,
   CheckCircle,
   Clock,
   RotateCcw,
-  ChevronDown,
+  Sparkles,
+  Loader2,
+  AlertCircle,
+  ArrowRight,
+  Code2,
   FileCode2,
 } from 'lucide-react';
+import Editor from '@monaco-editor/react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { useLearner } from '@/context/LearnerContext';
+import { useTheme } from '@/context/ThemeContext';
 
 export const SkillArenaPage: React.FC = () => {
-  const [language, setLanguage] = useState<'typescript' | 'python'>('typescript');
-  const [activeTab, setActiveTab] = useState<'problem' | 'constraints' | 'provenance'>('problem');
-  const [isRunningTests, setIsRunningTests] = useState(false);
-  const [testOutput, setTestOutput] = useState<string | null>(null);
+  const {
+    learner,
+    assessment,
+    assessmentResult,
+    isLoading,
+    generateAssessment,
+    loadAssessment,
+    submitAssessment,
+    loadAssessmentResult,
+  } = useLearner();
 
-  // Default challenge state
-  const challenge = {
-    title: 'Distributed Rate Limiter Implementation',
-    difficulty: 'Advanced',
-    category: 'Systems Architecture',
-    timeLimitMinutes: 45,
-    description: `Implement a token-bucket rate limiter suitable for a distributed multi-tenant API gateway. Your implementation must guarantee thread-safety and handle high concurrency without starving client requests.
+  const { actualTheme } = useTheme();
 
-The rate limiter must accurately replenish tokens based on elapsed wall-clock time and reject incoming requests when the bucket capacity is exhausted.`,
-    examples: [
-      {
-        input: 'capacity = 10, refillRate = 2.0 (tokens/sec), requests = 12',
-        output: '10 requests granted, 2 requests rejected (HTTP 429)',
-        explanation: 'Initial burst accepts 10 tokens. Next 2 requests are denied until tokens refill.',
-      },
-    ],
-    constraints: [
-      'Refill rate must use monotonic timestamps to prevent clock skew issues.',
-      'Refill computations must be strictly O(1) in time complexity.',
-      'Memory consumption per tenant must remain bounded under 1 KiB.',
-      'Must pass both single-threaded unit tests and 50-thread concurrent benchmark suites.',
-    ],
+  // State
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
+  const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [showSandbox, setShowSandbox] = useState(false);
+  const [sandboxLanguage, setSandboxLanguage] = useState<'typescript' | 'python'>('python');
+  const [sandboxCode, setSandboxCode] = useState<string>(
+    '# Maximus Scratchpad\n# Use this editor to experiment with logic or code snippets\n\ndef solution():\n    return "Ready"\n\nprint(solution())'
+  );
+
+  // Load existing assessment or result on mount
+  useEffect(() => {
+    if (learner?.id) {
+      loadAssessmentResult();
+      loadAssessment();
+    }
+  }, [learner?.id, loadAssessment, loadAssessmentResult]);
+
+  const handleGenerate = async () => {
+    setActionError(null);
+    try {
+      await generateAssessment();
+      setSelectedAnswers({});
+      setActiveQuestionIndex(0);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to generate assessment';
+      setActionError(msg);
+    }
   };
 
-  const handleRunTests = () => {
-    setIsRunningTests(true);
-    setTestOutput('Dispatching code to sandboxed test runner...\nRunning Suite: Unit Tests (3/3)\nRunning Suite: Concurrency Benchmarks (50 threads)...\n\n✓ Test 1: Initial capacity burst (PASSED in 4ms)\n✓ Test 2: Monotonic refill replenishment (PASSED in 12ms)\n✓ Test 3: Thread-safety race condition check (PASSED in 28ms)\n\nAll test suites passed. Ready for submission.');
-    setTimeout(() => {
-      setIsRunningTests(false);
-    }, 1200);
+  const handleSelectOption = (questionId: string, optionIndex: number) => {
+    setSelectedAnswers((prev) => ({
+      ...prev,
+      [questionId]: optionIndex,
+    }));
   };
+
+  const handleSubmit = async () => {
+    if (!assessment) return;
+
+    // Validate that all questions are answered
+    const unanswered = assessment.questions.filter((q) => selectedAnswers[q.id] === undefined);
+    if (unanswered.length > 0) {
+      setActionError(`Please answer all questions before submitting (${unanswered.length} remaining).`);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setActionError(null);
+    try {
+      await submitAssessment(selectedAnswers);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Submission failed';
+      setActionError(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // If no learner profile configured
+  if (!learner) {
+    return (
+      <div className="max-w-[1000px] mx-auto py-12 text-center space-y-6">
+        <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500">
+          <AlertCircle className="h-8 w-8" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-semibold text-[#171717] dark:text-[#FAFAFA]">
+            Learner Trajectory Required
+          </h2>
+          <p className="text-sm text-[#737373] dark:text-[#A3A3A3] max-w-md mx-auto">
+            You must calibrate your career target or technical stack before launching an AI-tailored competency assessment.
+          </p>
+        </div>
+        <NavLink to="/onboarding">
+          <Button variant="primary" size="lg" className="gap-2 cursor-pointer">
+            <span>Calibrate Trajectory</span>
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </NavLink>
+      </div>
+    );
+  }
+
+  const questions = assessment?.questions || [];
+  const currentQuestion = questions[activeQuestionIndex];
+  const allAnswered = questions.length > 0 && questions.every((q) => selectedAnswers[q.id] !== undefined);
 
   return (
-    <div className="w-full max-w-[1600px] mx-auto space-y-4">
+    <div className="w-full max-w-[1600px] mx-auto space-y-6">
       {/* Top Workspace Header Bar */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#E5E5E5] dark:border-[#222222] pb-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#171717] dark:text-[#FAFAFA]">
-              {challenge.title}
+              Skill Arena: Competency Verification
             </h1>
-            <Badge variant="accent" className="text-xs">
-              {challenge.difficulty}
+            <Badge variant="outline" className="text-xs uppercase font-mono">
+              Target: {assessment?.target_role || learner.target_role || 'General'}
             </Badge>
-            <Badge variant="outline" className="text-xs hidden sm:inline-flex">
-              {challenge.category}
-            </Badge>
+            {assessmentResult && (
+              <Badge variant="accent" className="text-xs">
+                Score: {Math.round(assessmentResult.score)}%
+              </Badge>
+            )}
           </div>
           <div className="flex items-center gap-4 text-xs sm:text-sm text-[#737373] dark:text-[#888888]">
             <span className="flex items-center gap-1.5 font-medium">
               <Clock className="h-4 w-4 text-[#7C3AED] dark:text-[#8B5CF6]" />
-              Time Allocation: {challenge.timeLimitMinutes} minutes
+              Agentic Assessment Architect
             </span>
             <span>•</span>
-            <span>Target: Verified Skill Badge</span>
+            <span>Zero Hallucinations • Real Benchmark Evaluation</span>
           </div>
         </div>
 
         {/* Toolbar Controls */}
-        <div className="flex items-center gap-3 shrink-0">
-          {/* Language selector */}
-          <div className="relative">
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value as 'typescript' | 'python')}
-              className="appearance-none h-10 pl-3 pr-8 rounded-md border border-[#E5E5E5] dark:border-[#262626] bg-[#FAFAFA] dark:bg-[#111111] text-xs font-mono font-medium text-[#171717] dark:text-[#FAFAFA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]/50 cursor-pointer"
-            >
-              <option value="typescript">TypeScript 5.7</option>
-              <option value="python">Python 3.12</option>
-            </select>
-            <ChevronDown className="h-3.5 w-3.5 absolute right-2.5 top-3.5 pointer-events-none text-[#737373] dark:text-[#888888]" />
-          </div>
-
+        <div className="flex items-center gap-3 shrink-0 flex-wrap">
           <Button
             size="md"
             variant="secondary"
-            onClick={handleRunTests}
-            isLoading={isRunningTests}
-            className="gap-2 h-10 px-4 text-xs font-medium"
+            onClick={() => setShowSandbox((prev) => !prev)}
+            className="gap-2 text-xs cursor-pointer"
           >
-            <Play className="h-3.5 w-3.5" />
-            <span>Run Tests</span>
+            <Code2 className="h-4 w-4" />
+            <span>{showSandbox ? 'Hide Code Sandbox' : 'Open Code Sandbox'}</span>
           </Button>
 
-          <Button
-            size="md"
-            variant="primary"
-            className="gap-2 h-10 px-5 text-xs font-medium shadow-xs"
-          >
-            <CheckCircle className="h-3.5 w-3.5" />
-            <span>Submit Assessment</span>
-          </Button>
+          {(!assessment || assessmentResult) && (
+            <Button
+              size="md"
+              variant="primary"
+              onClick={handleGenerate}
+              disabled={isLoading}
+              className="gap-2 text-xs shadow-xs cursor-pointer"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Architecting Questions...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  <span>{assessmentResult ? 'Retake New Assessment' : 'Generate Assessment'}</span>
+                </>
+              )}
+            </Button>
+          )}
+
+          {assessment && !assessmentResult && (
+            <Button
+              size="md"
+              variant="primary"
+              onClick={handleSubmit}
+              disabled={!allAnswered || isSubmitting}
+              className="gap-2 text-xs shadow-xs cursor-pointer"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Grading Answers...</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-4 w-4" />
+                  <span>Submit Assessment</span>
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Main Workspace: 40% Left Brief / 60% Right Editor */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 h-[calc(100vh-170px)] min-h-[620px]">
-        {/* LEFT COLUMN: Specification, Constraints & Tests (40% width) */}
-        <div className="lg:col-span-5 flex flex-col rounded-xl border border-[#E5E5E5] dark:border-[#222222] bg-white dark:bg-[#0A0A0A] overflow-hidden shadow-xs">
-          {/* Sub-tabs */}
-          <div className="flex items-center border-b border-[#E5E5E5] dark:border-[#222222] px-4 bg-[#FAFAFA] dark:bg-[#070707] text-xs font-medium">
-            <button
-              onClick={() => setActiveTab('problem')}
-              className={`py-3 px-3.5 border-b-2 transition-colors ${
-                activeTab === 'problem'
-                  ? 'border-[#7C3AED] dark:border-[#8B5CF6] text-[#171717] dark:text-[#FAFAFA]'
-                  : 'border-transparent text-[#737373] dark:text-[#888888] hover:text-[#171717] dark:hover:text-[#FAFAFA]'
-              }`}
-            >
-              Problem Specification
-            </button>
-            <button
-              onClick={() => setActiveTab('constraints')}
-              className={`py-3 px-3.5 border-b-2 transition-colors ${
-                activeTab === 'constraints'
-                  ? 'border-[#7C3AED] dark:border-[#8B5CF6] text-[#171717] dark:text-[#FAFAFA]'
-                  : 'border-transparent text-[#737373] dark:text-[#888888] hover:text-[#171717] dark:hover:text-[#FAFAFA]'
-              }`}
-            >
-              Constraints & Examples
-            </button>
-            <button
-              onClick={() => setActiveTab('provenance')}
-              className={`py-3 px-3.5 border-b-2 transition-colors ${
-                activeTab === 'provenance'
-                  ? 'border-[#7C3AED] dark:border-[#8B5CF6] text-[#171717] dark:text-[#FAFAFA]'
-                  : 'border-transparent text-[#737373] dark:text-[#888888] hover:text-[#171717] dark:hover:text-[#FAFAFA]'
-              }`}
-            >
-              Proof Integrity
-            </button>
+      {actionError && (
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-xs sm:text-sm text-red-600 dark:text-red-400 flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <p className="font-semibold">Assessment Notice</p>
+            <p>{actionError}</p>
           </div>
+        </div>
+      )}
 
-          {/* Viewport for description */}
-          <div className="flex-1 p-6 overflow-y-auto space-y-6 text-sm leading-relaxed text-[#525252] dark:text-[#B0B0B0]">
-            {activeTab === 'problem' && (
-              <div className="space-y-5">
-                <div className="space-y-2">
-                  <h3 className="text-base font-semibold text-[#171717] dark:text-[#FAFAFA]">
-                    Challenge Brief
-                  </h3>
-                  <p className="whitespace-pre-line leading-relaxed text-sm">
-                    {challenge.description}
-                  </p>
+      {/* Main Workspace Layout */}
+      <div className={`grid grid-cols-1 ${showSandbox ? 'lg:grid-cols-12' : 'lg:grid-cols-1'} gap-6`}>
+        {/* Left / Main Column: Questions or Results */}
+        <div className={showSandbox ? 'lg:col-span-7 space-y-6' : 'max-w-4xl mx-auto w-full space-y-6'}>
+          {/* STATE 1: No assessment generated yet */}
+          {!assessment && !assessmentResult && !isLoading && (
+            <div className="rounded-xl border border-[#E5E5E5] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#0A0A0A] p-8 sm:p-12 text-center space-y-6">
+              <div className="inline-flex h-14 w-14 items-center justify-center rounded-xl bg-[#7C3AED]/10 dark:bg-[#8B5CF6]/10 text-[#7C3AED] dark:text-[#8B5CF6]">
+                <Terminal className="h-7 w-7" />
+              </div>
+              <div className="space-y-2 max-w-lg mx-auto">
+                <h2 className="text-xl font-semibold text-[#171717] dark:text-[#FAFAFA]">
+                  Ready to Benchmark Your Knowledge?
+                </h2>
+                <p className="text-sm text-[#737373] dark:text-[#A3A3A3] leading-relaxed">
+                  The Assessment Architect agent will generate tailored multiple-choice challenges targeting your selected role ({learner.target_role || 'General Engineering'}).
+                </p>
+              </div>
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={handleGenerate}
+                className="gap-2 cursor-pointer shadow-xs"
+              >
+                <Sparkles className="h-4 w-4" />
+                <span>Begin Assessment Architecture</span>
+              </Button>
+            </div>
+          )}
+
+          {/* STATE 2: Loading / Generating with AI */}
+          {isLoading && !assessmentResult && (
+            <div className="rounded-xl border border-[#E5E5E5] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#0A0A0A] p-12 text-center space-y-6">
+              <Loader2 className="h-10 w-10 text-[#7C3AED] dark:text-[#8B5CF6] animate-spin mx-auto" />
+              <div className="space-y-2 max-w-md mx-auto">
+                <h3 className="text-lg font-semibold text-[#171717] dark:text-[#FAFAFA]">
+                  Constructing Targeted Assessment
+                </h3>
+                <p className="text-xs text-[#737373] dark:text-[#A3A3A3] leading-relaxed">
+                  Calling backend AI architect models. Synthesizing boundary conditions, algorithmic questions, and evaluation metrics... (this may take up to 45 seconds).
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* STATE 3: Assessment Result Display (Graded) */}
+          {assessmentResult && (
+            <div className="space-y-6">
+              {/* Score Header Card */}
+              <div className="rounded-xl border border-[#E5E5E5] dark:border-[#222222] bg-white dark:bg-[#0A0A0A] p-6 sm:p-8 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#E5E5E5] dark:border-[#222222]">
+                  <div className="space-y-1">
+                    <span className="text-xs font-mono uppercase text-[#7C3AED] dark:text-[#8B5CF6]">
+                      Assessment Complete
+                    </span>
+                    <h2 className="text-2xl font-bold text-[#171717] dark:text-[#FAFAFA]">
+                      Audited Competency Evaluation
+                    </h2>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-3xl sm:text-4xl font-mono font-bold text-[#7C3AED] dark:text-[#8B5CF6]">
+                      {Math.round(assessmentResult.score)}%
+                    </div>
+                    <div className="text-xs text-[#737373] dark:text-[#888888]">
+                      {assessmentResult.correct} of {assessmentResult.total} Correct
+                    </div>
+                  </div>
                 </div>
 
-                <div className="space-y-3 pt-3 border-t border-[#E5E5E5] dark:border-[#222222]">
-                  <h4 className="text-sm font-semibold text-[#171717] dark:text-[#FAFAFA]">
-                    Expected Interface
-                  </h4>
-                  <pre className="p-3.5 rounded-lg border border-[#E5E5E5] dark:border-[#222222] bg-[#F7F7F7] dark:bg-[#111111] font-mono text-xs text-[#171717] dark:text-[#FAFAFA] overflow-x-auto">
-{language === 'typescript'
-  ? `interface RateLimiter {
-  allowRequest(tenantId: string, tokensRequested?: number): boolean;
-  getAvailableTokens(tenantId: string): number;
-  reset(tenantId: string): void;
-}`
-  : `class RateLimiter:
-    def allow_request(self, tenant_id: str, tokens: int = 1) -> bool:
-        pass
-    def get_available_tokens(self, tenant_id: str) -> float:
-        pass`}
-                  </pre>
+                {assessmentResult.evidence_note && (
+                  <div className="p-4 rounded-lg bg-[#FAFAFA] dark:bg-[#111111] border border-[#E5E5E5] dark:border-[#222222] text-xs leading-relaxed text-[#737373] dark:text-[#A3A3A3] space-y-1">
+                    <strong className="text-[#171717] dark:text-[#FAFAFA] block">Provenance & Scope Note:</strong>
+                    <span>{assessmentResult.evidence_note}</span>
+                  </div>
+                )}
+
+                {/* Skill Breakdown */}
+                {assessmentResult.skill_scores && (
+                  <div className="space-y-3 pt-2">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-[#171717] dark:text-[#FAFAFA]">
+                      Skill Scores by Topic
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {Object.entries(assessmentResult.skill_scores).map(([skill, score]) => (
+                        <div
+                          key={skill}
+                          className="flex items-center justify-between p-3 rounded-lg border border-[#E5E5E5] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#070707]"
+                        >
+                          <span className="text-xs font-medium text-[#171717] dark:text-[#FAFAFA]">
+                            {skill}
+                          </span>
+                          <span className="text-xs font-mono font-semibold text-[#7C3AED] dark:text-[#8B5CF6]">
+                            {Math.round(score * 100)}%
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Explanations */}
+                {assessmentResult.explanations && assessmentResult.explanations.length > 0 && (
+                  <div className="space-y-4 pt-4 border-t border-[#E5E5E5] dark:border-[#222222]">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-[#171717] dark:text-[#FAFAFA]">
+                      Question Feedback & Explanations
+                    </h4>
+                    <div className="space-y-3">
+                      {assessmentResult.explanations.map((exp, idx) => (
+                        <div
+                          key={idx}
+                          className={`p-4 rounded-lg border text-xs space-y-2 ${
+                            exp.is_correct
+                              ? 'border-emerald-500/30 bg-emerald-500/5 dark:bg-emerald-950/10'
+                              : 'border-red-500/30 bg-red-500/5 dark:bg-red-950/10'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between font-medium">
+                            <span className="text-[#171717] dark:text-[#FAFAFA]">Question #{idx + 1}</span>
+                            <Badge variant={exp.is_correct ? 'success' : 'outline'} className="text-[11px]">
+                              {exp.is_correct ? 'Correct' : 'Needs Review'}
+                            </Badge>
+                          </div>
+                          <p className="text-[#737373] dark:text-[#A3A3A3] leading-relaxed">
+                            {exp.explanation}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-[#E5E5E5] dark:border-[#222222]">
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    onClick={handleGenerate}
+                    className="w-full sm:w-auto gap-2 cursor-pointer"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    <span>Retake Assessment</span>
+                  </Button>
+
+                  <NavLink to="/career" className="w-full sm:w-auto">
+                    <Button variant="primary" size="md" className="w-full sm:w-auto gap-2 cursor-pointer">
+                      <span>View Adaptive Roadmap</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </NavLink>
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {activeTab === 'constraints' && (
-              <div className="space-y-5">
-                <div className="space-y-2">
-                  <h3 className="text-base font-semibold text-[#171717] dark:text-[#FAFAFA]">
-                    Technical Constraints
-                  </h3>
-                  <ul className="space-y-2 list-disc list-inside text-sm">
-                    {challenge.constraints.map((c, idx) => (
-                      <li key={idx} className="leading-relaxed">
-                        {c}
-                      </li>
-                    ))}
-                  </ul>
+          {/* STATE 4: Active Question Flow (Unsubmitted) */}
+          {assessment && !assessmentResult && currentQuestion && (
+            <div className="rounded-xl border border-[#E5E5E5] dark:border-[#222222] bg-white dark:bg-[#0A0A0A] p-6 sm:p-8 space-y-6">
+              {/* Question Stepper Indicator */}
+              <div className="flex items-center justify-between text-xs text-[#737373] dark:text-[#888888] pb-4 border-b border-[#E5E5E5] dark:border-[#222222]">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-[#171717] dark:text-[#FAFAFA]">
+                    Question {activeQuestionIndex + 1} of {questions.length}
+                  </span>
+                  <Badge variant="outline" className="text-[11px] uppercase">
+                    {currentQuestion.skill}
+                  </Badge>
+                  <Badge variant="accent" className="text-[11px]">
+                    {currentQuestion.difficulty}
+                  </Badge>
                 </div>
 
-                <div className="space-y-3 pt-3 border-t border-[#E5E5E5] dark:border-[#222222]">
-                  <h4 className="text-sm font-semibold text-[#171717] dark:text-[#FAFAFA]">
-                    Example Scenario
-                  </h4>
-                  {challenge.examples.map((ex, idx) => (
-                    <div
-                      key={idx}
-                      className="p-4 rounded-lg border border-[#E5E5E5] dark:border-[#222222] bg-[#F7F7F7] dark:bg-[#111111] space-y-2 text-xs"
+                <div className="flex items-center gap-1 font-mono">
+                  {questions.map((q, idx) => (
+                    <button
+                      key={q.id}
+                      onClick={() => setActiveQuestionIndex(idx)}
+                      className={`h-6 w-6 rounded-md text-xs font-medium cursor-pointer transition-colors ${
+                        activeQuestionIndex === idx
+                          ? 'bg-[#7C3AED] dark:bg-[#8B5CF6] text-white'
+                          : selectedAnswers[q.id] !== undefined
+                          ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                          : 'bg-[#FAFAFA] dark:bg-[#161616] text-[#666666] dark:text-[#A3A3A3] border border-[#E5E5E5] dark:border-[#262626]'
+                      }`}
                     >
-                      <div>
-                        <strong className="text-[#171717] dark:text-[#FAFAFA]">Input: </strong>
-                        <span className="font-mono text-[#525252] dark:text-[#A3A3A3]">{ex.input}</span>
-                      </div>
-                      <div>
-                        <strong className="text-[#171717] dark:text-[#FAFAFA]">Output: </strong>
-                        <span className="font-mono text-[#525252] dark:text-[#A3A3A3]">{ex.output}</span>
-                      </div>
-                      <p className="text-[11px] text-[#737373] dark:text-[#888888] pt-1">
-                        {ex.explanation}
-                      </p>
-                    </div>
+                      {idx + 1}
+                    </button>
                   ))}
                 </div>
               </div>
-            )}
 
-            {activeTab === 'provenance' && (
+              {/* Question Prompt */}
               <div className="space-y-4">
-                <h3 className="text-base font-semibold text-[#171717] dark:text-[#FAFAFA]">
-                  Audited Verification Process
+                <h3 className="text-base sm:text-lg font-medium text-[#171717] dark:text-[#FAFAFA] leading-relaxed">
+                  {currentQuestion.prompt}
                 </h3>
-                <p className="text-sm leading-relaxed">
-                  Upon submission, your implementation is compiled and executed in a sandboxed runtime environment. Test outcomes are cryptographically hashed and attached to your learner profile as verifiable proof of technical competence.
-                </p>
-                <div className="p-4 rounded-lg border border-[#E5E5E5] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#111111] space-y-2 text-xs">
-                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-medium">
-                    <CheckCircle className="h-4 w-4" />
-                    <span>Isolated Sandbox Execution</span>
-                  </div>
-                  <p className="text-[#737373] dark:text-[#888888] leading-relaxed">
-                    Arbitrary user code is safely executed inside an isolated container with bounded memory and CPU limits.
-                  </p>
+
+                {/* Multiple Choice Options */}
+                <div className="space-y-3 pt-2">
+                  {currentQuestion.options.map((option, optIdx) => {
+                    const isSelected = selectedAnswers[currentQuestion.id] === optIdx;
+                    return (
+                      <div
+                        key={optIdx}
+                        onClick={() => handleSelectOption(currentQuestion.id, optIdx)}
+                        className={`flex items-start gap-3.5 p-4 rounded-lg border transition-all cursor-pointer ${
+                          isSelected
+                            ? 'border-[#7C3AED] dark:border-[#8B5CF6] bg-[#7C3AED]/5 dark:bg-[#8B5CF6]/10 shadow-xs'
+                            : 'border-[#E5E5E5] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#070707] hover:border-[#D4D4D4] dark:hover:border-[#333333]'
+                        }`}
+                      >
+                        <div
+                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-xs mt-0.5 font-medium transition-colors ${
+                            isSelected
+                              ? 'border-[#7C3AED] dark:border-[#8B5CF6] bg-[#7C3AED] dark:bg-[#8B5CF6] text-white'
+                              : 'border-[#D4D4D4] dark:border-[#333333] text-[#737373]'
+                          }`}
+                        >
+                          {String.fromCharCode(65 + optIdx)}
+                        </div>
+                        <span className="text-sm text-[#171717] dark:text-[#FAFAFA] leading-relaxed">
+                          {option}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-            )}
-          </div>
-        </div>
 
-        {/* RIGHT COLUMN: Code Editor & Execution Output Console (60% width) */}
-        <div className="lg:col-span-7 flex flex-col rounded-xl border border-[#E5E5E5] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#070707] overflow-hidden shadow-xs">
-          {/* Editor Header Bar */}
-          <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#E5E5E5] dark:border-[#222222] bg-white dark:bg-[#050505]">
-            <div className="flex items-center gap-2.5">
-              <FileCode2 className="h-4 w-4 text-[#7C3AED] dark:text-[#8B5CF6]" />
-              <span className="text-xs font-mono font-semibold text-[#171717] dark:text-[#FAFAFA]">
-                {language === 'typescript' ? 'solution.ts' : 'solution.py'}
-              </span>
-              <span className="text-[11px] font-mono text-[#8C8C8C] dark:text-[#666666]">
-                • Active Buffer
-              </span>
-            </div>
+              {/* Navigation Actions */}
+              <div className="flex items-center justify-between pt-6 border-t border-[#E5E5E5] dark:border-[#222222]">
+                <Button
+                  variant="secondary"
+                  size="md"
+                  disabled={activeQuestionIndex === 0}
+                  onClick={() => setActiveQuestionIndex((prev) => prev - 1)}
+                  className="cursor-pointer"
+                >
+                  Previous Question
+                </Button>
 
-            <div className="flex items-center gap-2">
-              <button
-                title="Reset starter template"
-                className="flex items-center gap-1 text-xs text-[#737373] dark:text-[#888888] hover:text-[#171717] dark:hover:text-[#FAFAFA] transition-colors p-1"
-              >
-                <RotateCcw className="h-3 w-3" />
-                <span>Reset</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Monaco Editor Container Viewport (taking major vertical space) */}
-          <div className="flex-1 p-5 bg-white dark:bg-[#0A0A0A] font-mono text-sm leading-relaxed text-[#171717] dark:text-[#E0E0E0] overflow-auto">
-            <div className="p-4 rounded-lg border border-[#E5E5E5] dark:border-[#1E1E1E] bg-[#FAFAFA] dark:bg-[#0D0D0D] space-y-1.5 text-xs sm:text-[13px] leading-6">
-              <p className="text-[#8C8C8C] dark:text-[#666666]">// Maximus Proof-of-Work Challenge: Distributed Rate Limiter</p>
-              <p className="text-[#8C8C8C] dark:text-[#666666]">// Language: {language === 'typescript' ? 'TypeScript 5.7' : 'Python 3.12'}</p>
-              <p className="text-[#7C3AED] dark:text-[#8B5CF6] pt-2">export class TokenBucketRateLimiter &#123;</p>
-              <p className="pl-4 text-[#8C8C8C] dark:text-[#666666]">private readonly capacity: number;</p>
-              <p className="pl-4 text-[#8C8C8C] dark:text-[#666666]">private readonly refillRatePerSec: number;</p>
-              <p className="pl-4 text-[#8C8C8C] dark:text-[#666666]">private tokens: number;</p>
-              <p className="pl-4 text-[#8C8C8C] dark:text-[#666666]">private lastRefillTimestamp: number;</p>
-              <p className="pt-2 pl-4 text-[#7C3AED] dark:text-[#8B5CF6]">constructor(capacity: number, refillRatePerSec: number) &#123;</p>
-              <p className="pl-8 text-[#171717] dark:text-[#FAFAFA]">this.capacity = capacity;</p>
-              <p className="pl-8 text-[#171717] dark:text-[#FAFAFA]">this.refillRatePerSec = refillRatePerSec;</p>
-              <p className="pl-8 text-[#171717] dark:text-[#FAFAFA]">this.tokens = capacity;</p>
-              <p className="pl-8 text-[#171717] dark:text-[#FAFAFA]">this.lastRefillTimestamp = performance.now();</p>
-              <p className="pl-4 text-[#7C3AED] dark:text-[#8B5CF6]">&#125;</p>
-              <p className="pt-2 pl-4 text-[#7C3AED] dark:text-[#8B5CF6]">public allowRequest(tokensRequested = 1): boolean &#123;</p>
-              <p className="pl-8 text-[#737373] dark:text-[#888888]">// TODO: calculate elapsed time and update available tokens</p>
-              <p className="pl-8 text-[#171717] dark:text-[#FAFAFA]">if (this.tokens &gt;= tokensRequested) &#123;</p>
-              <p className="pl-12 text-[#171717] dark:text-[#FAFAFA]">this.tokens -= tokensRequested;</p>
-              <p className="pl-12 text-[#171717] dark:text-[#FAFAFA]">return true;</p>
-              <p className="pl-8 text-[#171717] dark:text-[#FAFAFA]">&#125;</p>
-              <p className="pl-8 text-[#171717] dark:text-[#FAFAFA]">return false;</p>
-              <p className="pl-4 text-[#7C3AED] dark:text-[#8B5CF6]">&#125;</p>
-              <p className="text-[#7C3AED] dark:text-[#8B5CF6]">&#125;</p>
-            </div>
-          </div>
-
-          {/* Dedicated Execution Output Console */}
-          <div className="h-44 border-t border-[#E5E5E5] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#050505] p-4 font-mono text-xs text-[#171717] dark:text-[#D4D4D4] flex flex-col justify-between shrink-0">
-            <div className="flex items-center justify-between pb-2 border-b border-[#E5E5E5] dark:border-[#1E1E1E]">
-              <div className="flex items-center gap-2">
-                <Terminal className="h-3.5 w-3.5 text-[#7C3AED] dark:text-[#8B5CF6]" />
-                <span className="font-semibold text-xs">Test Execution Console</span>
+                {activeQuestionIndex < questions.length - 1 ? (
+                  <Button
+                    variant="primary"
+                    size="md"
+                    onClick={() => setActiveQuestionIndex((prev) => prev + 1)}
+                    className="cursor-pointer"
+                  >
+                    Next Question
+                  </Button>
+                ) : (
+                  <Button
+                    variant="primary"
+                    size="md"
+                    onClick={handleSubmit}
+                    disabled={!allAnswered || isSubmitting}
+                    className="cursor-pointer gap-2 shadow-xs"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Submitting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4" />
+                        <span>Submit All Answers</span>
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
-              <span className="text-[11px] text-[#737373] dark:text-[#888888]">
-                {testOutput ? 'Test run finished' : 'Idle • Click "Run Tests" to evaluate'}
-              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Right Column: Code Sandbox / Monaco Editor (Toggled or Side-by-Side) */}
+        {showSandbox && (
+          <div className="lg:col-span-5 flex flex-col rounded-xl border border-[#E5E5E5] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#070707] overflow-hidden shadow-xs h-[650px]">
+            {/* Editor Header Bar */}
+            <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#E5E5E5] dark:border-[#222222] bg-white dark:bg-[#050505]">
+              <div className="flex items-center gap-2">
+                <FileCode2 className="h-4 w-4 text-[#7C3AED] dark:text-[#8B5CF6]" />
+                <span className="text-xs font-mono font-semibold text-[#171717] dark:text-[#FAFAFA]">
+                  Interactive Sandbox
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <select
+                  value={sandboxLanguage}
+                  onChange={(e) => setSandboxLanguage(e.target.value as 'typescript' | 'python')}
+                  className="h-8 pl-2 pr-6 rounded border border-[#E5E5E5] dark:border-[#262626] bg-[#FAFAFA] dark:bg-[#111111] text-xs font-mono text-[#171717] dark:text-[#FAFAFA] cursor-pointer"
+                >
+                  <option value="python">Python 3</option>
+                  <option value="typescript">TypeScript</option>
+                </select>
+
+                <button
+                  onClick={() => setSandboxCode('')}
+                  title="Clear editor"
+                  className="text-xs text-[#737373] dark:text-[#888888] hover:text-[#171717] dark:hover:text-[#FAFAFA] p-1 cursor-pointer"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                </button>
+              </div>
             </div>
 
-            <div className="flex-1 pt-2 overflow-y-auto whitespace-pre-wrap leading-relaxed text-[12px] text-[#525252] dark:text-[#A3A3A3]">
-              {testOutput ? (
-                <span className="text-emerald-700 dark:text-emerald-400 font-medium">
-                  {testOutput}
-                </span>
-              ) : (
-                <span className="text-[#8C8C8C] dark:text-[#666666]">
-                  Awaiting test trigger. Sandboxed test runner evaluates boundary conditions, concurrency locks, and execution efficiency.
-                </span>
-              )}
-            </div>
-
-            <div className="pt-2 border-t border-[#E5E5E5] dark:border-[#1A1A1A] flex items-center justify-between text-[11px] text-[#8C8C8C] dark:text-[#666666]">
-              <span>Memory Limit: 256MB</span>
-              <span>Execution Timeout: 5000ms</span>
+            {/* Monaco Editor Component with Theme Adaptation */}
+            <div className="flex-1 w-full h-full min-h-[350px]">
+              <Editor
+                height="100%"
+                language={sandboxLanguage}
+                theme={actualTheme === 'dark' ? 'vs-dark' : 'light'}
+                value={sandboxCode}
+                onChange={(val) => setSandboxCode(val || '')}
+                options={{
+                  minimap: { enabled: false },
+                  fontSize: 13,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  lineNumbers: 'on',
+                  scrollBeyondLastLine: false,
+                  automaticLayout: true,
+                }}
+              />
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   :root {
     color-scheme: light dark;
@@ -12,7 +14,7 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    transition: background-color 200ms ease, color 200ms ease;
+    transition: background-color 150ms ease, color 150ms ease;
   }
 
   code, pre, .font-mono {

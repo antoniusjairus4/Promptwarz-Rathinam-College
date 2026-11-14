@@ -1,88 +1,269 @@
 /**
- * SkillForge AI — Centralized Domain Types & API Contracts
- * Backend is the single source of truth.
+ * Maximus — Centralized Domain Types & API Contracts (v1)
+ * Backend is the single source of truth. All contract response fields are snake_case.
  */
 
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  timestamp: string;
+export interface StorageStatus {
+  mode: 'memory' | 'sqlite' | 'postgres' | string;
+  durable: boolean;
+  reason?: string | null;
 }
 
-export interface HealthCheckResponse {
-  status: 'ok' | 'healthy' | 'degraded' | 'down';
-  version?: string;
-  uptime?: number;
-  environment?: string;
-  timestamp?: string;
-}
-
-export type OnboardingTrack = 'career_first' | 'skills_first';
-
-export interface LearnerProfile {
-  id: string;
-  email: string;
-  fullName: string;
-  targetRole?: string;
-  experienceLevel?: 'entry' | 'mid' | 'senior';
-  verifiedSkillsCount: number;
-  createdAt: string;
-}
-
-export interface SkillDnaCategory {
-  category: string;
-  score: number; // 0 - 100
+export interface SkillEvidence {
+  skill: string;
+  provenance: 'self_reported' | 'assessment_observed';
   verified: boolean;
-  benchmarkScore: number;
+  score?: number | null;
+  assessment_id?: string | null;
+  note: string;
 }
 
-export interface SkillDnaProfile {
-  learnerId: string;
-  targetRole: string;
-  overallReadiness: number;
-  categories: SkillDnaCategory[];
-  topStrengths: string[];
-  priorityGaps: string[];
-  lastUpdated: string;
+export interface Learner {
+  id: string;
+  full_name: string;
+  track: 'career_first' | 'skills_first' | string;
+  target_role?: string | null;
+  experience_level: 'entry' | 'mid' | 'senior' | string;
+  weekly_hours: number;
+  skills: SkillEvidence[];
+  interests?: string[];
+  created_at: string;
 }
 
-export interface AssessmentChallenge {
+export interface OnboardingRequest {
+  full_name: string;
+  track: 'career_first' | 'skills_first';
+  target_role?: string | null;
+  skills?: string[];
+  interests?: string[];
+  experience_level?: 'entry' | 'mid' | 'senior';
+  weekly_hours?: number;
+}
+
+export interface OnboardingResponse {
+  learner: Learner;
+  session_token: string;
+  storage: StorageStatus;
+}
+
+export interface PublicQuestion {
+  id: string;
+  skill: string;
+  prompt: string;
+  options: string[];
+  difficulty: string;
+}
+
+export interface Assessment {
+  id: string;
+  learner_id: string;
+  target_role: string;
+  target_role_source: string;
+  questions: PublicQuestion[];
+  source?: string;
+  provider: string;
+  model: string;
+  created_at: string;
+  submitted?: boolean;
+}
+
+export interface AssessmentResponse {
+  assessment: Assessment;
+  storage: StorageStatus;
+}
+
+export interface QuestionFeedback {
+  question_id: string;
+  selected_index: number;
+  is_correct: boolean;
+  explanation: string;
+}
+
+export interface QuizVerification {
+  skill: string;
+  score: number;
+  passed: boolean;
+  evidence_scope: string;
+}
+
+export interface AssessmentResult {
+  assessment_id: string;
+  score: number;
+  correct: number;
+  total: number;
+  skill_scores: Record<string, number>;
+  evidence_note?: string;
+  submitted_at: string;
+  explanations?: QuestionFeedback[];
+  demonstrated_strengths?: string[];
+  gaps?: string[];
+  quiz_verification?: QuizVerification[];
+}
+
+export interface ResultResponse {
+  result: AssessmentResult;
+  storage: StorageStatus;
+}
+
+export interface RoadmapStep {
   id: string;
   title: string;
-  description: string;
-  category: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  timeLimitMinutes: number;
-  starterCode?: string;
-  language?: string;
-}
-
-export interface CareerNode {
-  id: string;
-  title: string;
-  type: 'milestone' | 'skill' | 'project' | 'certification';
-  status: 'locked' | 'available' | 'in_progress' | 'completed';
+  skill: string;
+  objective: string;
+  estimated_hours: number;
+  difficulty?: string;
+  practice_task: string;
+  gap_priority?: string;
+  status: 'locked' | 'available' | 'completed' | string;
   prerequisites: string[];
-  estimatedHours: number;
 }
 
-export interface LiveJobListing {
+export interface Roadmap {
+  id: string;
+  learner_id: string;
+  assessment_id: string;
+  target_role: string;
+  summary: string;
+  steps: RoadmapStep[];
+  source?: string;
+  provider: string;
+  model: string;
+  created_at: string;
+  revision?: number;
+  progress_source?: string;
+}
+
+export interface RoadmapResponse {
+  roadmap: Roadmap;
+  storage: StorageStatus;
+}
+
+export interface AgentEvent {
+  id: string;
+  agent: string;
+  status: string;
+  timestamp: string;
+  operation_id: string;
+}
+
+export interface EventsResponse {
+  events: AgentEvent[];
+  storage: StorageStatus;
+}
+
+export interface Attribution {
+  source: string;
+  source_url: string;
+  application_url: string;
+}
+
+export interface JobListing {
   id: string;
   title: string;
   company: string;
-  location: string;
-  matchScore: number;
-  requiredSkills: string[];
-  missingSkills: string[];
-  sourceUrl: string;
-  postedDate: string;
+  location?: string | null;
+  employment_type?: string | null;
+  summary: string;
+  tags: string[];
+  published_at?: string | null;
+  expires_at?: string | null;
+  application_url: string;
+  sources: Attribution[];
+}
+
+export interface ProviderStatus {
+  provider: string;
+  status: 'ok' | 'error' | 'disabled' | 'not_configured' | 'rate_limited' | string;
+  cached: boolean;
+  fetched_at?: string | null;
+  detail?: string | null;
+  retry_after_seconds?: number | null;
+}
+
+export interface MatchedJob {
+  job_id: string;
+  matched_terms: string[];
+  assessment_supported_terms: string[];
+  note: string;
+}
+
+export interface JobSearchResponse {
+  jobs: JobListing[];
+  providers: ProviderStatus[];
+  returned_count: number;
+  note?: string;
+  matches?: MatchedJob[];
+  session_id?: string | null;
+}
+
+export interface LearningResource {
+  id: string;
+  title: string;
+  provider: string;
+  url: string;
+  kind: 'course' | 'documentation' | 'video' | string;
+  topics: string[];
+  provenance: 'curated_official' | 'youtube_api' | string;
+  reviewed_on?: string | null;
+  channel?: string | null;
+}
+
+export interface LearningResponse {
+  resources: LearningResource[];
+  providers: ProviderStatus[];
+}
+
+export interface RepositoryMetadata {
+  full_name: string;
+  url: string;
+  description: string | null;
+  language: string | null;
+  stars: number;
+  forks: number;
+  default_branch: string;
+  pushed_at: string | null;
+  license: string | null;
+  evidence_note?: string;
+}
+
+export interface SourceFile {
+  path: string;
+  url?: string | null;
+  sha?: string | null;
+  content?: string | null;
+  status: 'ok' | 'error' | 'too_large' | 'unsupported' | string;
+  detail?: string | null;
+}
+
+export interface RepositoryResponse {
+  repository: RepositoryMetadata | null;
+  files: SourceFile[];
+  providers: ProviderStatus[];
 }
 
 export interface MentorMessage {
   id: string;
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-  timestamp: string;
-  contextNodeId?: string;
+  user_message: string;
+  reply: string;
+  next_actions: string[];
+  provider: string;
+  model: string;
+  created_at: string;
+}
+
+export interface MentorResponse {
+  message: MentorMessage;
+  storage: StorageStatus;
+}
+
+export interface HealthCheckResponse {
+  status: 'ok' | 'healthy' | 'degraded' | 'down' | string;
+  version?: string;
+  timestamp?: string;
+}
+
+export interface SystemStatusResponse {
+  mode: string;
+  durable: boolean;
+  reason?: string | null;
 }
