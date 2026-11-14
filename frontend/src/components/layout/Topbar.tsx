@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Menu, Activity, RefreshCw } from 'lucide-react';
-import { api } from '@/services/api';
+import { useHealthCheck } from '@/hooks/useHealthCheck';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 export interface TopbarProps {
@@ -8,28 +8,8 @@ export interface TopbarProps {
 }
 
 export const Topbar: React.FC<TopbarProps> = ({ onMenuToggle }) => {
-  const [healthStatus, setHealthStatus] = useState<'checking' | 'healthy' | 'offline'>('checking');
-  const [lastChecked, setLastChecked] = useState<string | null>(null);
-
-  const checkHealth = async () => {
-    setHealthStatus('checking');
-    try {
-      const res = await api.getHealth();
-      if (res.status === 'ok' || res.status === 'healthy') {
-        setHealthStatus('healthy');
-      } else {
-        setHealthStatus('offline');
-      }
-      setLastChecked(new Date().toLocaleTimeString());
-    } catch {
-      setHealthStatus('offline');
-      setLastChecked(new Date().toLocaleTimeString());
-    }
-  };
-
-  useEffect(() => {
-    checkHealth();
-  }, []);
+  const { isLoading, isHealthy, error, refetch: checkHealth } = useHealthCheck();
+  const healthStatus = isLoading ? 'checking' : isHealthy ? 'healthy' : 'offline';
 
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-[#E5E7EB] dark:border-[#222222] bg-white/95 dark:bg-black/95 px-5 sm:px-8 md:px-10 lg:px-12 backdrop-blur-xs select-none">
@@ -63,11 +43,7 @@ export const Topbar: React.FC<TopbarProps> = ({ onMenuToggle }) => {
       <div className="flex items-center gap-3">
         {/* Backend Connectivity Status */}
         <div
-          title={
-            lastChecked
-              ? `Backend service: ${healthStatus} (checked ${lastChecked})`
-              : `Backend service: ${healthStatus}`
-          }
+          title={error || `Backend service: ${healthStatus}`}
           role="status" aria-live="polite"
           className="flex items-center gap-2 rounded-lg border border-[#E5E7EB] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#0A0A0A] px-3 py-1.5 text-xs"
         >

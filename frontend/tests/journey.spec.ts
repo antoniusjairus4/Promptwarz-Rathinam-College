@@ -173,3 +173,16 @@ test('populated learning state remains accessible in both themes', async ({page}
   await page.goto('/onboarding');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
 });
+
+test('health failure clears stale online status and retry recovers', async ({page}) => {
+  await mockBackend(page);
+  await page.goto('/onboarding');
+  await expect(page.getByText('API Online', {exact:true})).toBeVisible();
+  await page.route('**/api/health', route => route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({detail:'Service temporarily unavailable'})}));
+  await page.getByRole('button',{name:'Refresh connection status'}).click();
+  await expect(page.getByText('API unavailable — retry', {exact:true})).toBeVisible();
+  await expect(page.getByText('API Online', {exact:true})).toHaveCount(0);
+  await page.route('**/api/health', route => route.fulfill({contentType:'application/json',body:'{"status":"ok"}'}));
+  await page.getByRole('button',{name:'Refresh connection status'}).click();
+  await expect(page.getByText('API Online', {exact:true})).toBeVisible();
+});

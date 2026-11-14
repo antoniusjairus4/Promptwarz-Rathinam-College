@@ -100,7 +100,7 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setStorageStatus(view.storage);
       setError(null);
     } catch (err: unknown) {
-      if (localStorage.getItem(LEARNER_ID_KEY) !== learnerId) return;
+      if (localStorage.getItem(LEARNER_ID_KEY) !== learnerId || localStorage.getItem(TOKEN_KEY) !== sessionToken) return;
       if (err instanceof ApiClientError && (err.status === 401 || err.status === 404)) {
         // In-memory backend restarted or session token expired
         clearSession();
@@ -116,10 +116,12 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     refreshLearner();
   }, [refreshLearner]);
 
-  // Query system status
+  // Ignore responses after this provider unmounts.
   useEffect(() => {
+    let active = true;
     api.getStatus()
       .then((status) => {
+        if (!active) return;
         setStorageStatus({
           mode: status.mode,
           durable: status.durable,
@@ -127,8 +129,9 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
       })
       .catch(() => {
-        // Backend offline or unreachable
+        // Backend offline or unreachable; health UI reports connectivity.
       });
+    return () => { active = false; };
   }, []);
 
   const onboard = async (data: OnboardingRequest) => {
@@ -147,7 +150,7 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setRoadmap(null);
       setMentorMessages([]);
       setBlueprint(null);
-    setProfileAnalysis(null);
+      setProfileAnalysis(null);
       setStorageStatus(res.storage);
 
       // Attempt to immediately trigger blueprint generation for a rich onboarding experience
@@ -209,15 +212,20 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (!learnerId) return null;
     try {
       const res = await api.getAssessment(learnerId);
+      if (localStorage.getItem(LEARNER_ID_KEY) !== learnerId || localStorage.getItem(TOKEN_KEY) !== sessionToken) return null;
       if (res?.assessment) {
         setAssessment(res.assessment);
         return res.assessment;
       }
       return null;
-    } catch {
+    } catch (err: unknown) {
+      if (localStorage.getItem(LEARNER_ID_KEY) === learnerId && localStorage.getItem(TOKEN_KEY) === sessionToken
+          && !(err instanceof ApiClientError && err.status === 404)) {
+        setError(err instanceof Error ? err.message : "Unable to restore learner data");
+      }
       return null;
     }
-  }, [learnerId]);
+  }, [learnerId, sessionToken]);
 
   const submitAssessment = async (
     answers: Record<string, number>
@@ -246,15 +254,20 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (!learnerId) return null;
     try {
       const res = await api.getResult(learnerId);
+      if (localStorage.getItem(LEARNER_ID_KEY) !== learnerId || localStorage.getItem(TOKEN_KEY) !== sessionToken) return null;
       if (res?.result) {
         setAssessmentResult(res.result);
         return res.result;
       }
       return null;
-    } catch {
+    } catch (err: unknown) {
+      if (localStorage.getItem(LEARNER_ID_KEY) === learnerId && localStorage.getItem(TOKEN_KEY) === sessionToken
+          && !(err instanceof ApiClientError && err.status === 404)) {
+        setError(err instanceof Error ? err.message : "Unable to restore learner data");
+      }
       return null;
     }
-  }, [learnerId]);
+  }, [learnerId, sessionToken]);
 
   const generateRoadmap = async (): Promise<Roadmap> => {
     if (!learnerId) throw new Error('No active learner session found');
@@ -278,15 +291,20 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (!learnerId) return null;
     try {
       const res = await api.getRoadmap(learnerId);
+      if (localStorage.getItem(LEARNER_ID_KEY) !== learnerId || localStorage.getItem(TOKEN_KEY) !== sessionToken) return null;
       if (res?.roadmap) {
         setRoadmap(res.roadmap);
         return res.roadmap;
       }
       return null;
-    } catch {
+    } catch (err: unknown) {
+      if (localStorage.getItem(LEARNER_ID_KEY) === learnerId && localStorage.getItem(TOKEN_KEY) === sessionToken
+          && !(err instanceof ApiClientError && err.status === 404)) {
+        setError(err instanceof Error ? err.message : "Unable to restore learner data");
+      }
       return null;
     }
-  }, [learnerId]);
+  }, [learnerId, sessionToken]);
 
   const completeStep = async (stepId: string) => {
     if (!learnerId) throw new Error('No active learner session found');

@@ -8,6 +8,7 @@ export function useHealthCheck(pollIntervalMs?: number) {
   const [error, setError] = useState<string | null>(null);
 
   const inFlight = useRef(false);
+  const mounted = useRef(true);
 
   const check = useCallback(async () => {
     if (inFlight.current) return;
@@ -16,8 +17,10 @@ export function useHealthCheck(pollIntervalMs?: number) {
     setError(null);
     try {
       const response = await api.getHealth();
-      setData(response);
+      if (mounted.current) setData(response);
     } catch (err: unknown) {
+      if (!mounted.current) return;
+      setData(null);
       if (err instanceof Error) {
         setError(err.message);
       } else {
@@ -25,24 +28,26 @@ export function useHealthCheck(pollIntervalMs?: number) {
       }
     } finally {
       inFlight.current = false;
-      setIsLoading(false);
+      if (mounted.current) setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    check();
-
-    if (pollIntervalMs && pollIntervalMs > 0) {
-      const timer = setInterval(check, pollIntervalMs);
-      return () => clearInterval(timer);
-    }
+    mounted.current = true;
+    void check();
+    const timer = pollIntervalMs && pollIntervalMs > 0
+      ? setInterval(() => { void check(); }, pollIntervalMs) : undefined;
+    return () => {
+      mounted.current = false;
+      if (timer) clearInterval(timer);
+    };
   }, [check, pollIntervalMs]);
 
   return {
     data,
     isLoading,
     error,
-    isHealthy: data?.status === 'ok' || data?.status === 'healthy',
+    isHealthy: !error && (data?.status === 'ok' || data?.status === 'healthy'),
     refetch: check,
   };
 }
