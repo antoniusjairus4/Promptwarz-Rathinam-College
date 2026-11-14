@@ -26,7 +26,7 @@ import { useTheme } from '@/context/ThemeContext';
 import type { RepositoryResponse, SourceFile } from '@/types';
 
 export const SkillDnaPage: React.FC = () => {
-  const { learner, assessmentResult, githubRepositories, importGithub, isRestoring, restorationError, refreshLearner, profileAnalysis, analyzeProfile } = useLearner();
+  const { learner, sessionToken, assessmentResult, githubRepositories, importGithub, isRestoring, restorationError, refreshLearner, profileAnalysis, analyzeProfile } = useLearner();
   const { actualTheme } = useTheme();
 
   // GitHub input state
@@ -52,6 +52,7 @@ export const SkillDnaPage: React.FC = () => {
 
   const handleAnalyze = async () => {
     if (analyzing.current) return;
+    if (sessionToken && !learner) { setErrorMessage('Restore your saved session before importing evidence. Use Retry session restoration; onboarding does not need to be repeated.'); return; }
     const paths = pathsInput.split(',').map(path => path.trim()).filter(Boolean).slice(0, 3);
     const controller = new AbortController();
     requestController.current = controller;
@@ -190,7 +191,7 @@ export const SkillDnaPage: React.FC = () => {
               variant="primary"
               size="md"
               onClick={handleAnalyze}
-              disabled={isAnalyzing || !repoInput.trim()}
+              disabled={isAnalyzing || isRestoring || Boolean(sessionToken && !learner) || !repoInput.trim()}
               className="w-full h-11 gap-2 cursor-pointer shadow-xs"
             >
               {isAnalyzing ? (
