@@ -21,7 +21,7 @@ An AI-powered learning platform for students, early-career professionals, and ca
 
 </div>
 
-> **MVP status:** The application implements the complete learner workflow. Hosted inference and external providers require working credentials and connectivity. MongoDB durability is conditional; explicitly labeled memory storage is temporary. The demo frontend link is an entry point, not a claim of independently verified production availability.
+> **Recovery status — November 14, 2026:** Atlas authenticated connectivity and profile restoration across separate Python processes have passed. Real Career-First and Skills-First backend journeys and a five-question AI interview browser flow have passed with MongoDB storage. The temporary Dev Tunnel has also returned intermittent HTTP 504; local success does not establish uninterrupted production availability. Status always reports whether the current repository is durable.
 
 ## The problem
 
@@ -127,7 +127,7 @@ flowchart TB
 
 ## API documentation
 
-The production-disabled AI Mock Interview preview adds five-question technical, behavioral, or mixed practice with browser voice input, editable text fallback, structured AI feedback, and session-backed results. See the [additive interview contract](contracts/INTERVIEW_HANDOFF.md). Ratings are practice feedback, not verified competence.
+AI Mock Interview adds five-question technical, behavioral, or mixed practice with browser voice input, editable text fallback, structured AI feedback, and session-backed results. See the [additive interview contract](contracts/INTERVIEW_HANDOFF.md). Ratings are practice feedback, not verified competence.
 
 The checked-in [OpenAPI contract](contracts/openapi.json) contains **33 operations**, spanning session facade routes and preserved `/api/v1` routes. Actual route modules: [journey](backend/app/api/journey.py), [workflow](backend/app/api/workflow.py), and [integrations](backend/app/api/integrations.py). Health is defined in [main.py](backend/app/main.py).
 
@@ -154,7 +154,7 @@ With the backend running locally, open [Swagger UI](http://127.0.0.1:8000/docs).
 
 ## Testing and quality assurance
 
-**Recorded local verification on November 14, 2026:** 42 backend tests passed; 14 browser tests passed and one opt-in live browser test was skipped. Typecheck, lint, and production build passed. The subsequent 25-second timeout hotfix also passed the production build. These are local results, not proof that deployed providers or all live journeys are currently healthy; this documentation change does not rerun the entire suite.
+**Recovery verification on November 14, 2026:** the backend regression suite includes storage outage/recovery, concurrent GitHub fetching, deadline-limited partial results, and session-linked source restoration. Browser coverage includes retrying failed restoration without discarding credentials, single-request GitHub import, and onboarding independent of AI latency. Build/lint and the exact final test counts are recorded in [the recovery evidence](backend/RECOVERY.md). Synthetic regression fixtures and real provider checks are explicitly separate.
 
 | Evidence | Coverage |
 | --- | --- |
@@ -188,7 +188,7 @@ On machines with installed Chrome, `PLAYWRIGHT_CHANNEL=chrome npm test -- --work
 
 ## Accessibility and UX
 
-Implemented safeguards include labeled inputs, native MCQ radio controls, visible keyboard focus, skip navigation, route focus and document titles, announced errors/status, and a mobile dialog with focus trapping, Escape dismissal, and focus return. Light/dark themes, reduced-motion behavior, responsive layouts, and selected contrast/reflow states have browser-test coverage. Requests remain asynchronous; health/status calls share an in-flight request, and failures expose retry feedback instead of hanging indefinitely.
+Implemented safeguards include labeled inputs, native MCQ radio controls, visible keyboard focus, skip navigation, route focus and document titles, announced errors/status, and a mobile dialog with focus trapping, Escape dismissal, and focus return. Light/dark themes, reduced-motion behavior, responsive layouts, and selected contrast/reflow states have browser-test coverage. Requests remain asynchronous. Health/status and same-session restoration calls share in-flight requests. Failed restoration retains credentials and exposes a retry action. Ordinary calls wait 25 seconds; single AI operations allow 60 seconds, and multi-agent assessment/roadmap generation allows 120 seconds. GitHub source inspection has a 20-second backend deadline and returns genuine partial observations.
 
 ## Local development
 
@@ -220,7 +220,7 @@ cd frontend
 npm run dev -- --host 127.0.0.1
 ```
 
-Health/startup do not require AI credentials. Configure a hosted provider to generate AI content; an unavailable provider produces an error, not a mock result. No local MongoDB server or model-weight download is required.
+Onboarding creates a session immediately; blueprint generation is an explicit dashboard action, so provider latency cannot hold onboarding hostage. Health/startup do not require AI credentials. Configure a hosted provider to generate AI content; an unavailable provider produces an error, not a mock result. No local MongoDB server or model-weight download is required.
 
 <details>
 <summary><strong>Safe environment reference</strong></summary>
@@ -261,7 +261,7 @@ GitHub public access can operate without a token, subject to provider limits. Yo
 
 Hosted secrets load from environment variables, not a bundled `.env`. Serverless defaults require MongoDB and disable memory fallback and Remotive unless explicitly overridden. This avoids claiming instance-local state is durable or enforcing provider-wide feed limits with ephemeral caches. A database outage can leave health available while learner operations return 503.
 
-**Known deployment blockers:** prior `maximus-api.vercel.app` invocation failures require runtime logs to identify the cause; no successful repair is claimed here. Earlier Atlas checks encountered network connection refusal before authentication. Current Atlas availability and a complete live deployed journey were not reverified for this README. Slow AI requests may exceed the frontend's 25-second timeout even when within backend budgets.
+**Operational limits:** prior `maximus-api.vercel.app` invocation failures are not claimed fixed; the active backend remains the Dev Tunnel. The earlier Atlas TCP refusal is resolved and authenticated ping plus cross-process restoration now pass. Tunnel HTTP 504 remains an external availability risk. AI operations have separate bounded frontend timeouts, and provider errors remain visible rather than becoming fabricated results. See [current recovery evidence](backend/RECOVERY.md) for the final deployed-site verification outcome.
 
 ## Evaluator evidence matrix
 

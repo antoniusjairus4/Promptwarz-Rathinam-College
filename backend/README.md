@@ -1,5 +1,7 @@
 # Maximus backend
 
+Latest verified recovery: [RECOVERY.md](RECOVERY.md). Atlas connectivity and cross-process durable profile restoration now pass; earlier connection-refused diagnostics below are historical.
+
 Vercel deployment configuration and limitations: [VERCEL.md](VERCEL.md). Deploy with `backend` as the project root; the existing local startup command remains unchanged.
 
 Phase 2 reliability: hosted calls attempt each configured provider once, with a default 30-second wall-clock timeout and a 120-second AI budget shared by agents in one HTTP request (`LLM_TIMEOUT_SECONDS`, `AI_REQUEST_BUDGET_SECONDS`). Existing private environment overrides remain effective. NVIDIA remains primary; `gemini-3.5-flash` is the tested Gemini fallback. Read [PHASE2.md](PHASE2.md) for evidence boundaries and actual verification results.
