@@ -9,6 +9,8 @@ from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
 from app.api.workflow import router
+from app.api.integrations import router as integrations_router
+from app.services.external import ExternalServices
 from app.core.config import Settings
 from app.db.repository import Conflict, Repository, StorageUnavailable, build_repository
 from app.services.inference import Generator, HostedGenerator, InferenceUnavailable
@@ -26,12 +28,14 @@ def create_app(settings: Settings | None = None, repository: Repository | None =
     async def lifespan(application):
         repo = repository if repository is not None else await run_in_threadpool(build_repository, settings)
         application.state.workflow = WorkflowService(repo, generator if generator is not None else HostedGenerator(settings))
+        application.state.external = ExternalServices(settings)
         try:
             yield
         finally:
+            await application.state.external.close()
             repo.close()
 
-    application = FastAPI(title="Maximus API", version="0.2.0", lifespan=lifespan)
+    application = FastAPI(title="Maximus API", version="0.3.0", lifespan=lifespan)
     application.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,
@@ -58,6 +62,7 @@ def create_app(settings: Settings | None = None, repository: Repository | None =
         return HealthResponse()
 
     application.include_router(router)
+    application.include_router(integrations_router)
     return application
 
 

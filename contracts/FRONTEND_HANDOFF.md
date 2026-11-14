@@ -20,3 +20,5 @@ AI requests may take up to 45 seconds per provider per model call; assessment ge
 Errors use `{"detail":...}`: 401 missing session, 404 missing resource/invalid session, 409 prerequisite or concurrent state conflict, 422 invalid input, 429 assessment limit, 503 unavailable AI/storage. FastAPI validation details may be an array. AI/storage SDK messages and secrets are never sent to clients. Generate POST requests are idempotent while an unsubmitted assessment/current roadmap exists; requesting an assessment after submission explicitly starts a new baseline.
 
 CORS permits configured origins and GET/POST/PATCH with Authorization and Content-Type headers. Configure `FRONTEND_ORIGIN` as a comma-separated origin list if needed. Credentials remain backend-only.
+
+Optional job search, curated resources, YouTube and public GitHub routes are now available independently of the learning workflow. Bot A integration details and provider-term display requirements are in [BOT_A_INTEGRATIONS.md](BOT_A_INTEGRATIONS.md). Consult the regenerated OpenAPI schema for exact shapes.

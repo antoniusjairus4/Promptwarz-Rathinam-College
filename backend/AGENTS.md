@@ -3,7 +3,7 @@
 - Use MongoDB Atlas as the hosted database; a local development fallback is optional. Do not install MongoDB server during setup. No Supabase or local LLM weights.
 - Hosted inference order: NVIDIA NIM primary, Gemini first fallback, OpenAI second fallback. Configure providers and model names through environment variables. Startup and health require no API keys or database credentials.
 - Five logical agents for the later implementation phase: Skill Detective, Career Architect, Assessment Architect, Learning Curator and Adaptive Mentor.
-- External services: GitHub REST, Himalayas Jobs, optional Adzuna and YouTube.
+- External services: GitHub public REST, Himalayas Jobs, Remotive, optional Adzuna and YouTube. Honor provider rate limits, attribution, application URLs and job expiry. Never require signup to view public jobs.
 - Validate input; bound external requests with timeouts, response limits and graceful failure.
 - Never fabricate jobs, courses, model outputs, assessment scores or agent events. Emit genuine agent events only.
 - Never reveal answer keys to the frontend. Preserve evidence provenance and separate inferred skills from verified skills.
