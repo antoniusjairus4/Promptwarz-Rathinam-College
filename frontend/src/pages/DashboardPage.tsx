@@ -7,7 +7,7 @@ import {
   Compass,
   Briefcase,
   CheckCircle2,
-  Clock,
+  BookOpen,
   Sparkles,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
@@ -16,268 +16,287 @@ import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 
 export const DashboardPage: React.FC = () => {
-  // Current learner state (uninitialized in setup phase, connects to backend profile API)
+  // Learner profile state (dynamically fetched from backend /api/v1/learners/{id} when calibrated)
   const targetCareer: string | null = null;
   const verifiedSkillsCount = 0;
   const readinessScore: number | null = null;
   const activeMilestone: string | null = null;
+  const competencyGaps: string[] = [];
 
   return (
-    <div className="space-y-8">
-      {/* TOP SECTION: Editorial Header & Career Goal */}
+    <div className="max-w-[1400px] mx-auto space-y-8">
+      {/* TOP SECTION: Large Heading & Career Target Bar */}
       <section className="border-b border-[#E5E5E5] dark:border-[#222222] pb-6 space-y-4">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-xs uppercase tracking-widest text-[#8C8C8C] dark:text-[#666666]">
-                Learner Workspace
-              </span>
-              <span className="h-1 w-1 rounded-full bg-[#E5E5E5] dark:bg-[#333333]" />
-              <span className="font-mono text-xs text-[#8C8C8C] dark:text-[#666666]">
-                Setup Phase
-              </span>
-            </div>
-            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-[#171717] dark:text-[#FAFAFA]">
+            <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#171717] dark:text-[#FAFAFA]">
               Maximus Overview
             </h1>
-            <p className="text-xs md:text-sm text-[#666666] dark:text-[#A3A3A3] max-w-2xl leading-relaxed">
+            <p className="text-sm sm:text-base text-[#737373] dark:text-[#A3A3A3] max-w-2xl leading-relaxed">
               Discover what you know. Prove what you can do. Build what comes next.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-3 shrink-0">
             <NavLink to="/onboarding">
-              <Button variant="primary" size="sm" className="gap-1.5">
-                <Sparkles className="h-3.5 w-3.5" />
-                <span>{targetCareer ? 'Modify Target' : 'Define Target Career'}</span>
+              <Button variant="primary" size="md" className="gap-2 shadow-xs">
+                <Sparkles className="h-4 w-4" />
+                <span>{targetCareer ? 'Change Career Target' : 'Calibrate Career Target'}</span>
               </Button>
             </NavLink>
           </div>
         </div>
 
-        {/* Current Career Target Banner */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-[#E5E5E5] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#080808] px-4 py-3 text-xs">
-          <div className="flex items-center gap-2.5">
-            <Compass className="h-4 w-4 text-[#7C3AED] dark:text-[#8B5CF6] shrink-0" />
-            <div>
-              <span className="text-[#666666] dark:text-[#A3A3A3]">Aspirational Target: </span>
-              <span className="font-medium text-[#171717] dark:text-[#FAFAFA]">
-                {targetCareer || 'None configured yet'}
+        {/* Current Career Target Status Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-[#E5E5E5] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#080808] px-5 py-3.5">
+          <div className="flex items-center gap-3">
+            <Compass className="h-5 w-5 text-[#7C3AED] dark:text-[#8B5CF6] shrink-0" />
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs sm:text-sm text-[#737373] dark:text-[#888888]">Target Trajectory:</span>
+              <span className="text-xs sm:text-sm font-semibold text-[#171717] dark:text-[#FAFAFA]">
+                {targetCareer || 'No Career Target Configured'}
               </span>
+              {!targetCareer && (
+                <Badge variant="default" className="text-[11px]">
+                  Uncalibrated
+                </Badge>
+              )}
             </div>
           </div>
 
-          <div className="flex items-center gap-4 text-[#8C8C8C] dark:text-[#666666] font-mono text-[11px]">
-            <span>Verified stack: {verifiedSkillsCount} skills</span>
-            <span>Readiness: {readinessScore !== null ? `${readinessScore}%` : 'Uncalibrated'}</span>
+          <div className="flex items-center gap-5 text-xs sm:text-sm text-[#737373] dark:text-[#888888]">
+            <span>
+              Verified Skills:{' '}
+              <strong className="text-[#171717] dark:text-[#FAFAFA] font-medium font-mono">
+                {verifiedSkillsCount}
+              </strong>
+            </span>
+            <span>
+              Readiness:{' '}
+              <strong className="text-[#171717] dark:text-[#FAFAFA] font-medium font-mono">
+                {readinessScore !== null ? `${readinessScore}%` : 'Uncalibrated'}
+              </strong>
+            </span>
           </div>
         </div>
       </section>
 
-      {/* MAIN ASYMMETRIC GRID (7 cols : 5 cols on large screens) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* LEFT COLUMN (7 cols): Readiness & Milestone & Skill Gap */}
-        <div className="lg:col-span-7 space-y-6">
-          {/* Career Readiness Overview */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-sm font-semibold">Career Readiness Overview</CardTitle>
-                <CardDescription>
-                  Benchmarked against live tech market requirements
-                </CardDescription>
+      {/* MAIN SECTION: 65% / 35% Asymmetric Composition */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Primary Panel (65% width) - Career Readiness Overview */}
+        <div className="lg:col-span-8">
+          <Card className="h-full flex flex-col justify-between p-2">
+            <CardHeader className="p-6 pb-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl font-semibold">Career Readiness Overview</CardTitle>
+                  <CardDescription className="text-sm mt-1">
+                    Objective benchmarking against industry engineering standards
+                  </CardDescription>
+                </div>
+                {readinessScore !== null && (
+                  <span className="text-2xl font-bold font-mono text-[#7C3AED] dark:text-[#8B5CF6]">
+                    {readinessScore}%
+                  </span>
+                )}
               </div>
-              <Badge variant="outline">Evaluation</Badge>
             </CardHeader>
-            <CardContent>
+
+            <CardContent className="p-6 pt-4 flex-1 flex flex-col justify-center">
               {readinessScore !== null ? (
-                <div className="space-y-3">
-                  <div className="flex items-baseline justify-between">
-                    <span className="text-3xl font-semibold font-mono tracking-tight">{readinessScore}%</span>
-                    <span className="text-xs text-[#666666] dark:text-[#A3A3A3]">Target: {targetCareer}</span>
-                  </div>
-                  <div className="w-full bg-[#E5E5E5] dark:bg-[#222222] h-1.5 rounded-full overflow-hidden">
+                <div className="space-y-4">
+                  <div className="w-full bg-[#E5E5E5] dark:bg-[#222222] h-2.5 rounded-full overflow-hidden">
                     <div
                       className="bg-[#7C3AED] dark:bg-[#8B5CF6] h-full rounded-full transition-all duration-300"
                       style={{ width: `${readinessScore}%` }}
                     />
                   </div>
+                  <p className="text-sm text-[#737373] dark:text-[#A3A3A3]">
+                    Evaluated from {verifiedSkillsCount} audited assessments against {targetCareer} requirements.
+                  </p>
                 </div>
               ) : (
                 <EmptyState
                   icon={Layers}
-                  title="Readiness Uncalibrated"
-                  description="Complete a timed assessment in Skill Arena or inventory your capabilities to calculate an objective readiness score."
-                  actionLabel="Enter Skill Arena"
+                  title="Readiness Profile Uncalibrated"
+                  description="Complete a timed coding assessment in Skill Arena or calibrate your career target in Onboarding to calculate an authentic readiness score."
+                  actionLabel="Launch Assessment in Skill Arena"
                   onAction={() => {}}
-                  className="p-6"
+                  secondaryActionLabel="Set Target Career"
+                  onSecondaryAction={() => {}}
                 />
               )}
             </CardContent>
           </Card>
-
-          {/* Current Learning Milestone */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-sm font-semibold">Current Learning Milestone</CardTitle>
-                <CardDescription>
-                  Sequential roadmap progression based on dependency graph
-                </CardDescription>
-              </div>
-              <Badge variant="outline">Milestone</Badge>
-            </CardHeader>
-            <CardContent>
-              {activeMilestone ? (
-                <div className="p-4 rounded-md border border-[#E5E5E5] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#0A0A0A] space-y-2">
-                  <span className="text-xs font-semibold text-[#171717] dark:text-[#FAFAFA]">{activeMilestone}</span>
-                </div>
-              ) : (
-                <div className="space-y-3 py-1">
-                  <div className="flex items-start gap-3 p-3.5 rounded-md border border-[#E5E5E5] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#080808]">
-                    <Clock className="h-4 w-4 text-[#8C8C8C] dark:text-[#666666] shrink-0 mt-0.5" />
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium text-[#171717] dark:text-[#FAFAFA]">
-                        Milestone Generation Standby
-                      </p>
-                      <p className="text-xs text-[#666666] dark:text-[#A3A3A3] leading-relaxed">
-                        Milestones are constructed dynamically once your career target and current skill inventory are established.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-1">
-                    <NavLink
-                      to="/career"
-                      className="text-xs font-medium text-[#7C3AED] dark:text-[#8B5CF6] hover:underline inline-flex items-center gap-1"
-                    >
-                      Open Career Navigator graph <ArrowRight className="h-3 w-3" />
-                    </NavLink>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Skill Gap Breakdown */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-semibold">Competency Gap Overview</CardTitle>
-              <CardDescription>
-                High-priority technical proficiencies required for your chosen trajectory
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="border border-[#E5E5E5] dark:border-[#222222] rounded-md divide-y divide-[#E5E5E5] dark:divide-[#222222] text-xs">
-                <div className="p-3 bg-[#FAFAFA] dark:bg-[#0A0A0A] font-mono text-[11px] text-[#8C8C8C] dark:text-[#666666] grid grid-cols-12">
-                  <span className="col-span-6">Competency Area</span>
-                  <span className="col-span-3">Status</span>
-                  <span className="col-span-3 text-right">Action</span>
-                </div>
-                <div className="p-3 grid grid-cols-12 items-center text-[#666666] dark:text-[#A3A3A3]">
-                  <span className="col-span-6 font-medium text-[#171717] dark:text-[#FAFAFA]">Systems Architecture</span>
-                  <span className="col-span-3 font-mono text-[11px]">Unverified</span>
-                  <span className="col-span-3 text-right">
-                    <NavLink to="/arena" className="text-[#7C3AED] dark:text-[#8B5CF6] hover:underline">
-                      Verify
-                    </NavLink>
-                  </span>
-                </div>
-                <div className="p-3 grid grid-cols-12 items-center text-[#666666] dark:text-[#A3A3A3]">
-                  <span className="col-span-6 font-medium text-[#171717] dark:text-[#FAFAFA]">Concurrent Programming</span>
-                  <span className="col-span-3 font-mono text-[11px]">Unverified</span>
-                  <span className="col-span-3 text-right">
-                    <NavLink to="/arena" className="text-[#7C3AED] dark:text-[#8B5CF6] hover:underline">
-                      Verify
-                    </NavLink>
-                  </span>
-                </div>
-                <div className="p-3 grid grid-cols-12 items-center text-[#666666] dark:text-[#A3A3A3]">
-                  <span className="col-span-6 font-medium text-[#171717] dark:text-[#FAFAFA]">Distributed Consensus</span>
-                  <span className="col-span-3 font-mono text-[11px]">Unverified</span>
-                  <span className="col-span-3 text-right">
-                    <NavLink to="/arena" className="text-[#7C3AED] dark:text-[#8B5CF6] hover:underline">
-                      Verify
-                    </NavLink>
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
-        {/* RIGHT COLUMN (5 cols): Next Action & Assessments & Jobs */}
-        <div className="lg:col-span-5 space-y-6">
-          {/* Next Recommended Action */}
-          <div className="rounded-lg border border-[#E5E5E5] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#0D0D0D] p-5 space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#7C3AED] dark:bg-[#8B5CF6]" />
-              <span className="font-mono text-[11px] uppercase tracking-wider text-[#8C8C8C] dark:text-[#666666]">
-                Recommended Next Step
-              </span>
+        {/* Secondary Panel (35% width) - Recommended Next Step */}
+        <div className="lg:col-span-4">
+          <div className="h-full rounded-lg border border-[#E5E5E5] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#0D0D0D] p-6 flex flex-col justify-between space-y-6">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-[#7C3AED] dark:bg-[#8B5CF6]" />
+                <span className="text-xs font-mono uppercase tracking-wider text-[#8C8C8C] dark:text-[#666666]">
+                  Recommended Next Step
+                </span>
+              </div>
+              <h2 className="text-lg font-semibold text-[#171717] dark:text-[#FAFAFA] tracking-tight">
+                Complete Baseline Assessment
+              </h2>
+              <p className="text-sm text-[#737373] dark:text-[#A3A3A3] leading-relaxed">
+                Take an interactive coding challenge in the Skill Arena. Your code is evaluated against sandboxed unit tests and performance suites to establish verified proof-of-work.
+              </p>
             </div>
-            <h3 className="text-sm font-semibold text-[#171717] dark:text-[#FAFAFA]">
-              Complete Initial Baseline Assessment
-            </h3>
-            <p className="text-xs text-[#666666] dark:text-[#A3A3A3] leading-relaxed">
-              Proof-of-work challenges evaluate your actual code implementation inside the sandboxed editor. Results form your immutable Skill DNA.
-            </p>
+
             <div className="pt-2">
-              <NavLink to="/arena">
-                <Button variant="primary" size="sm" className="w-full justify-between">
-                  <span>Open Skill Arena</span>
-                  <Terminal className="h-3.5 w-3.5" />
+              <NavLink to="/arena" className="block">
+                <Button variant="primary" size="md" className="w-full justify-between h-11 px-4">
+                  <span>Enter Skill Arena</span>
+                  <Terminal className="h-4 w-4" />
                 </Button>
               </NavLink>
             </div>
           </div>
+        </div>
+      </section>
 
-          {/* Recent Assessment Results */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-semibold">Proof-of-Work Log</CardTitle>
-              <CardDescription>
-                Audited coding challenges and score provenance
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="p-4 rounded-md border border-dashed border-[#E5E5E5] dark:border-[#222222] text-center space-y-2">
-                <CheckCircle2 className="h-4 w-4 text-[#8C8C8C] dark:text-[#666666] mx-auto" />
-                <p className="text-xs font-medium text-[#171717] dark:text-[#FAFAFA]">
-                  No Assessments Completed Yet
-                </p>
-                <p className="text-[11px] text-[#666666] dark:text-[#A3A3A3]">
-                  Verified badges appear here with cryptographic execution proofs.
-                </p>
+      {/* SECOND SECTION: Milestones, Competency Gaps, and Assessment Results */}
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Card 1: Current Learning Milestone */}
+        <Card className="flex flex-col justify-between">
+          <CardHeader>
+            <CardTitle className="text-base font-semibold">Active Milestone</CardTitle>
+            <CardDescription>Target roadmap progression</CardDescription>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col justify-center">
+            {activeMilestone ? (
+              <div className="p-4 rounded-md border border-[#E5E5E5] dark:border-[#222222] bg-[#FAFAFA] dark:bg-[#080808] space-y-2">
+                <p className="text-sm font-semibold text-[#171717] dark:text-[#FAFAFA]">{activeMilestone}</p>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Relevant Live Market Positions */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-sm font-semibold">Market Alignment</CardTitle>
-                <CardDescription>Live positions matching your verified stack</CardDescription>
-              </div>
-              <Briefcase className="h-4 w-4 text-[#8C8C8C] dark:text-[#666666]" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <p className="text-xs text-[#666666] dark:text-[#A3A3A3] leading-relaxed">
-                  Market opportunities are indexed live from external scrapers. No simulated listings are shown.
+            ) : (
+              <div className="space-y-4 py-2">
+                <p className="text-sm text-[#737373] dark:text-[#A3A3A3] leading-relaxed">
+                  Milestones are dynamically generated after calibrating your career target and taking a baseline assessment.
                 </p>
                 <NavLink
-                  to="/jobs"
-                  className="text-xs font-medium text-[#7C3AED] dark:text-[#8B5CF6] hover:underline inline-flex items-center gap-1"
+                  to="/career"
+                  className="text-xs sm:text-sm font-medium text-[#7C3AED] dark:text-[#8B5CF6] hover:underline inline-flex items-center gap-1.5"
                 >
-                  Explore live positions <ArrowRight className="h-3 w-3" />
+                  View Career Navigator graph <ArrowRight className="h-3.5 w-3.5" />
                 </NavLink>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Card 2: Competency Gaps (Strictly NO hardcoded fake gaps when target is unset) */}
+        <Card className="flex flex-col justify-between">
+          <CardHeader>
+            <CardTitle className="text-base font-semibold">Competency Gap Overview</CardTitle>
+            <CardDescription>Critical proficiencies for target trajectory</CardDescription>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col justify-center">
+            {targetCareer && competencyGaps.length > 0 ? (
+              <div className="space-y-2">
+                {competencyGaps.map((gap, i) => (
+                  <div key={i} className="flex items-center justify-between text-xs py-1.5 border-b border-[#E5E5E5] dark:border-[#222222]">
+                    <span className="text-[#171717] dark:text-[#FAFAFA]">{gap}</span>
+                    <Badge variant="outline">Unverified</Badge>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4 py-2">
+                <p className="text-sm text-[#737373] dark:text-[#A3A3A3] leading-relaxed">
+                  {targetCareer
+                    ? 'No gaps calculated yet. Complete an initial assessment to benchmark competencies.'
+                    : 'Configure a career target in Onboarding to generate verified competency gaps against market requirements.'}
+                </p>
+                <NavLink
+                  to="/onboarding"
+                  className="text-xs sm:text-sm font-medium text-[#7C3AED] dark:text-[#8B5CF6] hover:underline inline-flex items-center gap-1.5"
+                >
+                  Configure Career Target <ArrowRight className="h-3.5 w-3.5" />
+                </NavLink>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Card 3: Recent Assessment Results */}
+        <Card className="flex flex-col justify-between">
+          <CardHeader>
+            <CardTitle className="text-base font-semibold">Proof-of-Work Log</CardTitle>
+            <CardDescription>Audited challenge verification proofs</CardDescription>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col justify-center">
+            <div className="space-y-4 py-2">
+              <div className="flex items-center gap-2.5 text-sm text-[#737373] dark:text-[#A3A3A3]">
+                <CheckCircle2 className="h-4 w-4 text-[#8C8C8C] dark:text-[#666666] shrink-0" />
+                <span>0 assessments completed</span>
+              </div>
+              <p className="text-xs text-[#8C8C8C] dark:text-[#666666] leading-relaxed">
+                Completed challenges in Skill Arena receive immutable evaluation proofs stored on the backend.
+              </p>
+              <NavLink
+                to="/arena"
+                className="text-xs sm:text-sm font-medium text-[#7C3AED] dark:text-[#8B5CF6] hover:underline inline-flex items-center gap-1.5"
+              >
+                Start an assessment <ArrowRight className="h-3.5 w-3.5" />
+              </NavLink>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* LOWER SECTION: Market Alignment & Learning Resources */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <div>
+              <CardTitle className="text-base font-semibold">Live Market Intelligence</CardTitle>
+              <CardDescription className="text-sm mt-0.5">
+                Real engineering positions scraped from external feeds
+              </CardDescription>
+            </div>
+            <Briefcase className="h-5 w-5 text-[#8C8C8C] dark:text-[#666666]" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-[#737373] dark:text-[#A3A3A3] leading-relaxed">
+              Explore live verified positions from Himalayas and Remotive matched to your target competencies. Zero synthetic jobs are displayed.
+            </p>
+            <NavLink
+              to="/jobs"
+              className="text-xs sm:text-sm font-medium text-[#7C3AED] dark:text-[#8B5CF6] hover:underline inline-flex items-center gap-1.5"
+            >
+              Search live job listings <ArrowRight className="h-3.5 w-3.5" />
+            </NavLink>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <div>
+              <CardTitle className="text-base font-semibold">Curated Learning Hub</CardTitle>
+              <CardDescription className="text-sm mt-0.5">
+                Targeted curriculum and hands-on portfolio projects
+              </CardDescription>
+            </div>
+            <BookOpen className="h-5 w-5 text-[#8C8C8C] dark:text-[#666666]" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-[#737373] dark:text-[#A3A3A3] leading-relaxed">
+              Review official documentation benchmarks and structured modules recommended by the Learning Curator agent.
+            </p>
+            <NavLink
+              to="/learning"
+              className="text-xs sm:text-sm font-medium text-[#7C3AED] dark:text-[#8B5CF6] hover:underline inline-flex items-center gap-1.5"
+            >
+              Browse curated resources <ArrowRight className="h-3.5 w-3.5" />
+            </NavLink>
+          </CardContent>
+        </Card>
+      </section>
     </div>
   );
 };

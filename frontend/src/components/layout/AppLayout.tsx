@@ -15,8 +15,8 @@ export const AppLayout: React.FC = () => {
   }, [sidebarCollapsed]);
 
   return (
-    <div className="flex min-h-screen bg-white dark:bg-black text-[#171717] dark:text-[#FAFAFA]">
-      {/* Desktop Sidebar */}
+    <div className="flex min-h-screen bg-white dark:bg-black text-[#171717] dark:text-[#FAFAFA] antialiased">
+      {/* Desktop Sidebar (240px expanded / 64px collapsed) */}
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
@@ -28,11 +28,11 @@ export const AppLayout: React.FC = () => {
         onClose={() => setMobileMenuOpen(false)}
       />
 
-      {/* Main Content Area */}
+      {/* Main Content Area with generous responsive layout */}
       <div className="flex flex-1 flex-col min-w-0">
         <Topbar onMenuToggle={() => setMobileMenuOpen(true)} />
 
-        <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-6xl w-full mx-auto">
+        <main className="flex-1 w-full px-5 sm:px-8 md:px-10 lg:px-12 py-6 md:py-8">
           <Outlet />
         </main>
       </div>
