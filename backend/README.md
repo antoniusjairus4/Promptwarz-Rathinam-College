@@ -1,5 +1,7 @@
 # Maximus backend
 
+Vercel deployment configuration and limitations: [VERCEL.md](VERCEL.md). Deploy with `backend` as the project root; the existing local startup command remains unchanged.
+
 FastAPI + Pydantic + LangGraph MVP for onboarding → AI assessment → adaptive roadmap. Hosted NVIDIA inference is primary, with configured Gemini and OpenAI fallbacks. No local LLMs, unsandboxed code execution, fake AI output, or fabricated learning resources are used.
 
 From the repository root:
