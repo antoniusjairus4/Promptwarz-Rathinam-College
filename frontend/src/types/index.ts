@@ -46,6 +46,13 @@ export interface OnboardingResponse {
   storage: StorageStatus;
 }
 
+export interface SessionCreated {
+  session_id: string;
+  session_token: string;
+  session: SessionView;
+  storage: StorageStatus;
+}
+
 export interface BlueprintSkill {
   name: string;
   priority: 'core' | 'supporting' | string;

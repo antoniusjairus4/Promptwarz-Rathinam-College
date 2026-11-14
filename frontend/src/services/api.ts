@@ -18,6 +18,7 @@ import type {
   Roadmap,
   BlueprintResponse,
   SessionView,
+  SessionCreated,
   ProfileResponse,
 } from '../types';
 
@@ -44,7 +45,7 @@ const getBaseUrl = (): string => {
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: getBaseUrl(),
-  timeout: 240000, // 240s default for standard backend operations
+  timeout: 10000, // Fail promptly when the backend or tunnel is unreachable
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
@@ -138,8 +139,8 @@ export const api = {
   /**
    * Session Facade: Create new session via POST /api/sessions
    */
-  async createSession(payload: OnboardingRequest): Promise<OnboardingResponse> {
-    return request<OnboardingResponse>({
+  async createSession(payload: OnboardingRequest): Promise<SessionCreated> {
+    return request<SessionCreated>({
       method: 'POST',
       url: '/api/sessions',
       data: payload,
@@ -165,7 +166,7 @@ export const api = {
       method: 'POST',
       url: '/api/career/blueprint',
       data: { session_id: sessionId },
-      timeout: 240000,
+      timeout: 10000,
     });
   },
 
@@ -177,7 +178,7 @@ export const api = {
       method: 'POST',
       url: '/api/profile/analyze',
       data: { session_id: sessionId },
-      timeout: 180000,
+      timeout: 10000,
     });
   },
 
@@ -200,7 +201,7 @@ export const api = {
     return request<AssessmentResponse>({
       method: 'POST',
       url: `/api/v1/learners/${learnerId}/assessments`,
-      timeout: 360000,
+      timeout: 10000,
     });
   },
 
@@ -246,7 +247,7 @@ export const api = {
     return request<RoadmapResponse>({
       method: 'POST',
       url: `/api/v1/learners/${learnerId}/roadmap`,
-      timeout: 240000,
+      timeout: 10000,
     });
   },
 
@@ -356,7 +357,7 @@ export const api = {
       url: `/api/v1/integrations/github/${owner}/${repo}${
         paths.length > 0 ? `?${params.toString()}` : ''
       }`,
-      timeout: 120000,
+      timeout: 10000,
     });
   },
 
@@ -371,7 +372,7 @@ export const api = {
         session_id: sessionId,
         message,
       },
-      timeout: 120000,
+      timeout: 10000,
     });
   },
 };

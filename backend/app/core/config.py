@@ -48,4 +48,4 @@ class Settings(BaseSettings):
     def cors_origins(self) -> list[str]:
         """Allow the deployed frontend plus origins configured for development."""
         configured = [origin.strip() for origin in self.frontend_origin.split(",") if origin.strip()]
-        return list(dict.fromkeys([*configured, "https://maximus-ch-indol.vercel.app"]))
+        return list(dict.fromkeys([*configured, "https://maximus-ch-indol.vercel.app", "https://maximus-chi-indol.vercel.app"]))

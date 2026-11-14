@@ -163,15 +163,15 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // Use session endpoint for complete journey features
       const res = await api.createSession(data);
       localStorage.setItem(TOKEN_KEY, res.session_token);
-      localStorage.setItem(LEARNER_ID_KEY, res.learner.id);
+      localStorage.setItem(LEARNER_ID_KEY, res.session_id);
       setSessionToken(res.session_token);
-      setLearnerId(res.learner.id);
-      setLearner(res.learner);
+      setLearnerId(res.session_id);
+      setLearner(res.session.learner);
       setStorageStatus(res.storage);
 
       // Attempt to immediately trigger blueprint generation for a rich onboarding experience
       try {
-        const bpRes = await api.createBlueprint(res.learner.id);
+        const bpRes = await api.createBlueprint(res.session_id);
         if (bpRes?.blueprint) {
           setBlueprint(bpRes.blueprint);
         }
