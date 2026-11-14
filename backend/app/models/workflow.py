@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_vali
 
 Text = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=160)]
 LongText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=2000)]
+ChoiceText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=600)]
 
 
 def new_id() -> str:
@@ -26,6 +27,7 @@ class OnboardingRequest(StrictModel):
     track: Literal["career_first", "skills_first"] = "career_first"
     target_role: Text | None = None
     skills: list[Text] = Field(default_factory=list, max_length=20)
+    interests: list[Text] = Field(default_factory=list, max_length=10)
     experience_level: Literal["entry", "mid", "senior"] = "entry"
     weekly_hours: int = Field(default=5, ge=1, le=40)
 
@@ -33,8 +35,8 @@ class OnboardingRequest(StrictModel):
     def validate_track(self):
         if self.track == "career_first" and not self.target_role:
             raise ValueError("Career-first onboarding requires target_role")
-        if self.track == "skills_first" and not self.skills:
-            raise ValueError("Skills-first onboarding requires at least one skill")
+        if self.track == "skills_first" and not (self.skills or self.interests):
+            raise ValueError("Skills-first onboarding requires at least one skill or interest")
         return self
 
 
@@ -55,13 +57,14 @@ class Learner(BaseModel):
     experience_level: str
     weekly_hours: int
     skills: list[SkillEvidence]
+    interests: list[str] = Field(default_factory=list)
     created_at: str
 
 
 class GeneratedQuestion(StrictModel):
     skill: Text
     prompt: LongText
-    options: list[Text] = Field(min_length=4, max_length=4)
+    options: list[ChoiceText] = Field(min_length=4, max_length=4)
     correct_index: int = Field(ge=0, le=3)
     rationale: LongText
     difficulty: Literal["beginner", "intermediate", "advanced"]
@@ -87,7 +90,7 @@ class PublicQuestion(BaseModel):
     id: str
     skill: str
     prompt: str
-    options: list[str]
+    options: list[ChoiceText] = Field(min_length=4, max_length=4)
     difficulty: str
 
 
@@ -109,6 +112,20 @@ class Submission(StrictModel):
     answers: dict[str, Annotated[int, Field(strict=True, ge=0, le=3)]] = Field(min_length=1, max_length=5)
 
 
+class QuestionFeedback(BaseModel):
+    question_id: str
+    selected_index: int
+    is_correct: bool
+    explanation: str
+
+
+class QuizVerification(BaseModel):
+    skill: str
+    score: float
+    passed: bool
+    evidence_scope: Literal["current_quiz_only"] = "current_quiz_only"
+
+
 class AssessmentResult(BaseModel):
     assessment_id: str
     score: float
@@ -117,6 +134,10 @@ class AssessmentResult(BaseModel):
     skill_scores: dict[str, float]
     evidence_note: str = "Score measures this AI-generated quiz only; it is not independent skill verification."
     submitted_at: str
+    explanations: list[QuestionFeedback] = Field(default_factory=list)
+    demonstrated_strengths: list[str] = Field(default_factory=list)
+    gaps: list[str] = Field(default_factory=list)
+    quiz_verification: list[QuizVerification] = Field(default_factory=list)
 
 
 class RoadmapDraftStep(StrictModel):
@@ -124,6 +145,7 @@ class RoadmapDraftStep(StrictModel):
     skill: Text
     objective: LongText
     estimated_hours: int = Field(ge=1, le=40)
+    difficulty: Literal["beginner", "intermediate", "advanced"] = "beginner"
     # No invented course URLs, job postings, certifications or completion claims.
     practice_task: LongText
 
@@ -134,6 +156,7 @@ class RoadmapDraft(StrictModel):
 
 
 class RoadmapStep(RoadmapDraftStep):
+    gap_priority: Literal["high", "medium", "low"] = "high"
     id: str
     status: Literal["locked", "available", "completed"]
     prerequisites: list[str]

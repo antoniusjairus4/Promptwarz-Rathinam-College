@@ -53,3 +53,21 @@ The current repository is the only working location for future Maximus changes. 
 Remotive's six-hour public feed cache is stored in ignored `backend/.cache/remotive.json` to avoid fetching again on routine server restart. It contains only public provider data. Keep one worker for the demo, preserve this cache across restarts, and do not delete it to force refresh. Search is local over the most recent 200 provider jobs, not exhaustive. If the filesystem is read-only the cache is process-local, so avoid frequent restarts or disable Remotive until a writable cache directory is available. `EXTERNAL_CACHE_DIR` can override the cache directory. Other provider results are cached in bounded process memory. Cached expired Himalayas listings are removed before responses; no stale-success fallback hides failures.
 
 The official learning catalog contains reviewed links only, without invented durations, ratings or completion claims. Public source files are read as bounded UTF-8 text and are never executed. GitHub metadata and source provenance do not establish learner authorship. Third-party HTML descriptions are converted to plain text. Application links and source attribution are retained, including across deduplication. Public jobs are never gated on account signup.
+
+## Complete session journey (API 0.4)
+
+The requested session facade is now implemented: `/api/sessions`, `/api/career/blueprint`, `/api/profile/analyze`, `/api/github/analyze`, `/api/assessment/generate`, `/api/assessment/evaluate`, `/api/roadmap/generate`, `/api/progress/update`, `/api/resources/search`, `/api/jobs/search`, `/api/mentor/chat`, plus GET session restoration. Existing API v1 is preserved. Full frontend instructions and JSON examples: `../contracts/FRONTEND_HANDOFF.md` and `../contracts/api_examples.json`.
+
+Sessions support arbitrary goals or skills/interests. Dynamic blueprint/profile/mentor generation uses genuine hosted model calls through LangGraph. Assessments personalize from source observations, blueprint and prior quiz results. Explanations are released after submission, with deterministic per-skill quiz checks rather than claims of independent professional verification. Roadmap refresh uses retained completed-practice context; progress remains explicitly learner-reported.
+
+Public GitHub inspection now uses `GITHUB_TOKEN` when configured and still rejects private repositories. Username discovery samples up to two recent non-fork repositories. Up to six source/manifest/test/CI/documentation files per repo are retrieved with SHA references; no clone, dependency installation or repository code execution occurs. Normal network failures cool down only the affected request; provider rate limits cool down all provider requests. GitHub requests have up to a 16-second deadline under the default 8-second external timeout, with a 100-second total inspection deadline.
+
+`ARBEITNOW_ENABLED` and `ADZUNA_ENABLED` enable optional additional job providers. Adzuna requires the existing private app ID/key and `ADZUNA_COUNTRY` (default `in`). Arbeitnow samples a cached recent feed; no exhaustive market coverage is claimed. Application URLs and attribution remain unmodified. Contextual job matching reports actual keyword overlap and quiz-supported terms, not invented hiring probabilities or salaries.
+
+Live verification from the repository root:
+
+```sh
+backend/.venv/bin/python backend/verify_journey.py --base-url http://127.0.0.1:8000
+```
+
+This creates a real demo session and makes hosted inference/provider requests. It prints only statuses and counts. It does not print credentials or session tokens. For a stable demo stop the development reload server yourself and use the startup command above without `--reload`; memory sessions are lost whenever the process restarts. Atlas failures remain isolated and reported as non-durable temporary storage; later durable database failures never cause silent replacement with an empty memory store.

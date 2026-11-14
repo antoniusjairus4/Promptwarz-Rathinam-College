@@ -1,0 +1,2030 @@
+{
+  "notice": "SYNTHETIC DOCUMENTATION EXAMPLES generated with test-only LLM fixtures and external providers disabled. These are schema examples, not live model/provider results. Use returned IDs and your own session token in real requests.",
+  "operations": [
+    {
+      "method": "GET",
+      "route": "/api/health",
+      "request": {
+        "path": "/api/health",
+        "headers": {},
+        "query": {},
+        "json": null
+      },
+      "response_status": 200,
+      "response_json": {
+        "status": "ok"
+      }
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/status",
+      "request": {
+        "path": "/api/v1/status",
+        "headers": {},
+        "query": {},
+        "json": null
+      },
+      "response_status": 200,
+      "response_json": {
+        "mode": "memory",
+        "durable": false,
+        "reason": "Explicit in-memory demo mode; data is lost on restart"
+      }
+    },
+    {
+      "method": "POST",
+      "route": "/api/sessions",
+      "request": {
+        "path": "/api/sessions",
+        "headers": {},
+        "query": {},
+        "json": {
+          "full_name": "Documentation example",
+          "target_role": "Backend Engineer",
+          "skills": [
+            "Python"
+          ],
+          "interests": [
+            "Web APIs"
+          ]
+        }
+      },
+      "response_status": 201,
+      "response_json": {
+        "session_id": "372d6d93-6d0a-4df8-89c2-044bdfa911aa",
+        "session_token": "<session_token>",
+        "session": {
+          "session_id": "372d6d93-6d0a-4df8-89c2-044bdfa911aa",
+          "learner": {
+            "id": "372d6d93-6d0a-4df8-89c2-044bdfa911aa",
+            "full_name": "Documentation example",
+            "track": "career_first",
+            "target_role": "Backend Engineer",
+            "experience_level": "entry",
+            "weekly_hours": 5,
+            "skills": [
+              {
+                "skill": "Python",
+                "provenance": "self_reported",
+                "verified": false,
+                "score": null,
+                "assessment_id": null,
+                "note": "Declared by learner; not independently verified"
+              }
+            ],
+            "interests": [
+              "Web APIs"
+            ],
+            "created_at": "2026-11-14T07:02:40.173116+00:00"
+          },
+          "blueprint": null,
+          "profile_analysis": null,
+          "github_repositories": [],
+          "assessment": null,
+          "result": null,
+          "roadmap": null,
+          "messages": [],
+          "events": [],
+          "storage": {
+            "mode": "memory",
+            "durable": false,
+            "reason": "Explicit in-memory demo mode; data is lost on restart"
+          }
+        },
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Explicit in-memory demo mode; data is lost on restart"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "route": "/api/github/analyze",
+      "request": {
+        "path": "/api/github/analyze",
+        "headers": {
+          "Authorization": "Bearer <session_token>"
+        },
+        "query": {},
+        "json": {
+          "session_id": "372d6d93-6d0a-4df8-89c2-044bdfa911aa",
+          "target": "https://github.com/psf/requests"
+        }
+      },
+      "response_status": 200,
+      "response_json": {
+        "session_id": "372d6d93-6d0a-4df8-89c2-044bdfa911aa",
+        "repositories": [],
+        "providers": [
+          {
+            "provider": "github",
+            "status": "disabled",
+            "cached": false,
+            "fetched_at": null,
+            "detail": null,
+            "retry_after_seconds": null
+          }
+        ],
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Explicit in-memory demo mode; data is lost on restart"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "route": "/api/profile/analyze",
+      "request": {
+        "path": "/api/profile/analyze",
+        "headers": {
+          "Authorization": "Bearer <session_token>"
+        },
+        "query": {},
+        "json": {
+          "session_id": "372d6d93-6d0a-4df8-89c2-044bdfa911aa"
+        }
+      },
+      "response_status": 200,
+      "response_json": {
+        "profile": {
+          "summary": "Synthetic inferred profile",
+          "inferred_skills": [
+            "Python"
+          ],
+          "suggested_roles": [
+            "Backend Engineer"
+          ],
+          "gaps_to_assess": [
+            "HTTP"
+          ],
+          "provider": "test_provider",
+          "model": "test_model",
+          "generated_at": "2026-11-14T07:02:40.184924+00:00",
+          "evidence_note": "AI inference from self-reports and referenced source observations; not verified competence or authorship."
+        },
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Explicit in-memory demo mode; data is lost on restart"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "route": "/api/career/blueprint",
+      "request": {
+        "path": "/api/career/blueprint",
+        "headers": {
+          "Authorization": "Bearer <session_token>"
+        },
+        "query": {},
+        "json": {
+          "session_id": "372d6d93-6d0a-4df8-89c2-044bdfa911aa"
+        }
+      },
+      "response_status": 200,
+      "response_json": {
+        "blueprint": {
+          "target_role": "Backend Engineer",
+          "rationale": "Synthetic test rationale",
+          "skills": [
+            {
+              "name": "Python",
+              "priority": "core",
+              "rationale": "Synthetic test priority",
+              "difficulty": "beginner"
+            },
+            {
+              "name": "HTTP",
+              "priority": "core",
+              "rationale": "Synthetic test priority",
+              "difficulty": "beginner"
+            },
+            {
+              "name": "SQL",
+              "priority": "core",
+              "rationale": "Synthetic test priority",
+              "difficulty": "beginner"
+            }
+          ],
+          "provider": "test_provider",
+          "model": "test_model",
+          "generated_at": "2026-11-14T07:02:40.194269+00:00",
+          "source": "ai_generated"
+        },
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Explicit in-memory demo mode; data is lost on restart"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "route": "/api/assessment/generate",
+      "request": {
+        "path": "/api/assessment/generate",
+        "headers": {
+          "Authorization": "Bearer <session_token>"
+        },
+        "query": {},
+        "json": {
+          "session_id": "372d6d93-6d0a-4df8-89c2-044bdfa911aa"
+        }
+      },
+      "response_status": 200,
+      "response_json": {
+        "assessment": {
+          "id": "588bfd33-418e-4e54-a898-9f6142f14ae6",
+          "learner_id": "372d6d93-6d0a-4df8-89c2-044bdfa911aa",
+          "target_role": "Backend Engineer",
+          "target_role_source": "learner_selected",
+          "questions": [
+            {
+              "id": "c43d681e-45a0-4a69-80a6-169183748805",
+              "skill": "Python",
+              "prompt": "Test question about Python",
+              "options": [
+                "A",
+                "B",
+                "C",
+                "D"
+              ],
+              "difficulty": "beginner"
+            },
+            {
+              "id": "21b61c8a-f276-4b1a-93c3-596de2cb9da0",
+              "skill": "HTTP",
+              "prompt": "Test question about HTTP",
+              "options": [
+                "A",
+                "B",
+                "C",
+                "D"
+              ],
+              "difficulty": "beginner"
+            },
+            {
+              "id": "477dbe4e-c046-468a-807e-bfc9be8b3e6d",
+              "skill": "SQL",
+              "prompt": "Test question about SQL",
+              "options": [
+                "A",
+                "B",
+                "C",
+                "D"
+              ],
+              "difficulty": "beginner"
+            }
+          ],
+          "source": "ai_generated",
+          "provider": "test_provider",
+          "model": "test_model",
+          "created_at": "2026-11-14T07:02:40.199393+00:00",
+          "submitted": false
+        },
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Explicit in-memory demo mode; data is lost on restart"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "route": "/api/assessment/evaluate",
+      "request": {
+        "path": "/api/assessment/evaluate",
+        "headers": {
+          "Authorization": "Bearer <session_token>"
+        },
+        "query": {},
+        "json": {
+          "session_id": "372d6d93-6d0a-4df8-89c2-044bdfa911aa",
+          "assessment_id": "588bfd33-418e-4e54-a898-9f6142f14ae6",
+          "answers": {
+            "c43d681e-45a0-4a69-80a6-169183748805": 0,
+            "21b61c8a-f276-4b1a-93c3-596de2cb9da0": 0,
+            "477dbe4e-c046-468a-807e-bfc9be8b3e6d": 0
+          }
+        }
+      },
+      "response_status": 200,
+      "response_json": {
+        "result": {
+          "assessment_id": "588bfd33-418e-4e54-a898-9f6142f14ae6",
+          "score": 33.33,
+          "correct": 1,
+          "total": 3,
+          "skill_scores": {
+            "Python": 100.0,
+            "HTTP": 0.0,
+            "SQL": 0.0
+          },
+          "evidence_note": "Score measures this AI-generated quiz only; it is not independent skill verification.",
+          "submitted_at": "2026-11-14T07:02:40.201870+00:00",
+          "explanations": [
+            {
+              "question_id": "c43d681e-45a0-4a69-80a6-169183748805",
+              "selected_index": 0,
+              "is_correct": true,
+              "explanation": "Private fixture rationale"
+            },
+            {
+              "question_id": "21b61c8a-f276-4b1a-93c3-596de2cb9da0",
+              "selected_index": 0,
+              "is_correct": false,
+              "explanation": "Private fixture rationale"
+            },
+            {
+              "question_id": "477dbe4e-c046-468a-807e-bfc9be8b3e6d",
+              "selected_index": 0,
+              "is_correct": false,
+              "explanation": "Private fixture rationale"
+            }
+          ],
+          "demonstrated_strengths": [
+            "Python"
+          ],
+          "gaps": [
+            "HTTP",
+            "SQL"
+          ],
+          "quiz_verification": [
+            {
+              "skill": "Python",
+              "score": 100.0,
+              "passed": true,
+              "evidence_scope": "current_quiz_only"
+            },
+            {
+              "skill": "HTTP",
+              "score": 0.0,
+              "passed": false,
+              "evidence_scope": "current_quiz_only"
+            },
+            {
+              "skill": "SQL",
+              "score": 0.0,
+              "passed": false,
+              "evidence_scope": "current_quiz_only"
+            }
+          ]
+        },
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Explicit in-memory demo mode; data is lost on restart"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "route": "/api/roadmap/generate",
+      "request": {
+        "path": "/api/roadmap/generate",
+        "headers": {
+          "Authorization": "Bearer <session_token>"
+        },
+        "query": {},
+        "json": {
+          "session_id": "372d6d93-6d0a-4df8-89c2-044bdfa911aa"
+        }
+      },
+      "response_status": 200,
+      "response_json": {
+        "roadmap": {
+          "id": "12dec290-1108-4d68-875e-2c6744aeb82c",
+          "learner_id": "372d6d93-6d0a-4df8-89c2-044bdfa911aa",
+          "assessment_id": "588bfd33-418e-4e54-a898-9f6142f14ae6",
+          "target_role": "Backend Engineer",
+          "summary": "Test roadmap",
+          "steps": [
+            {
+              "title": "HTTP practice",
+              "skill": "HTTP",
+              "objective": "Practice this skill",
+              "estimated_hours": 2,
+              "difficulty": "beginner",
+              "practice_task": "Complete the practice exercise",
+              "gap_priority": "high",
+              "id": "279f13c1-c57a-4037-b00e-009d0c62f153",
+              "status": "available",
+              "prerequisites": []
+            },
+            {
+              "title": "SQL practice",
+              "skill": "SQL",
+              "objective": "Practice this skill",
+              "estimated_hours": 2,
+              "difficulty": "beginner",
+              "practice_task": "Complete the practice exercise",
+              "gap_priority": "high",
+              "id": "6f54323c-5f64-466f-b1d3-097a0b2ab38d",
+              "status": "locked",
+              "prerequisites": [
+                "279f13c1-c57a-4037-b00e-009d0c62f153"
+              ]
+            },
+            {
+              "title": "Python practice",
+              "skill": "Python",
+              "objective": "Practice this skill",
+              "estimated_hours": 2,
+              "difficulty": "beginner",
+              "practice_task": "Complete the practice exercise",
+              "gap_priority": "low",
+              "id": "34870fa1-661d-4660-b380-6f3f49e42428",
+              "status": "locked",
+              "prerequisites": [
+                "6f54323c-5f64-466f-b1d3-097a0b2ab38d"
+              ]
+            }
+          ],
+          "source": "ai_generated",
+          "provider": "test_provider",
+          "model": "test_model",
+          "created_at": "2026-11-14T07:02:40.207326+00:00",
+          "revision": 1,
+          "progress_source": "learner_reported"
+        },
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Explicit in-memory demo mode; data is lost on restart"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "route": "/api/progress/update",
+      "request": {
+        "path": "/api/progress/update",
+        "headers": {
+          "Authorization": "Bearer <session_token>"
+        },
+        "query": {},
+        "json": {
+          "session_id": "372d6d93-6d0a-4df8-89c2-044bdfa911aa",
+          "step_id": "279f13c1-c57a-4037-b00e-009d0c62f153",
+          "completed": true
+        }
+      },
+      "response_status": 200,
+      "response_json": {
+        "roadmap": {
+          "id": "12dec290-1108-4d68-875e-2c6744aeb82c",
+          "learner_id": "372d6d93-6d0a-4df8-89c2-044bdfa911aa",
+          "assessment_id": "588bfd33-418e-4e54-a898-9f6142f14ae6",
+          "target_role": "Backend Engineer",
+          "summary": "Test roadmap",
+          "steps": [
+            {
+              "title": "HTTP practice",
+              "skill": "HTTP",
+              "objective": "Practice this skill",
+              "estimated_hours": 2,
+              "difficulty": "beginner",
+              "practice_task": "Complete the practice exercise",
+              "gap_priority": "high",
+              "id": "279f13c1-c57a-4037-b00e-009d0c62f153",
+              "status": "completed",
+              "prerequisites": []
+            },
+            {
+              "title": "SQL practice",
+              "skill": "SQL",
+              "objective": "Practice this skill",
+              "estimated_hours": 2,
+              "difficulty": "beginner",
+              "practice_task": "Complete the practice exercise",
+              "gap_priority": "high",
+              "id": "6f54323c-5f64-466f-b1d3-097a0b2ab38d",
+              "status": "available",
+              "prerequisites": [
+                "279f13c1-c57a-4037-b00e-009d0c62f153"
+              ]
+            },
+            {
+              "title": "Python practice",
+              "skill": "Python",
+              "objective": "Practice this skill",
+              "estimated_hours": 2,
+              "difficulty": "beginner",
+              "practice_task": "Complete the practice exercise",
+              "gap_priority": "low",
+              "id": "34870fa1-661d-4660-b380-6f3f49e42428",
+              "status": "locked",
+              "prerequisites": [
+                "6f54323c-5f64-466f-b1d3-097a0b2ab38d"
+              ]
+            }
+          ],
+          "source": "ai_generated",
+          "provider": "test_provider",
+          "model": "test_model",
+          "created_at": "2026-11-14T07:02:40.207326+00:00",
+          "revision": 2,
+          "progress_source": "learner_reported"
+        },
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Explicit in-memory demo mode; data is lost on restart"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "route": "/api/mentor/chat",
+      "request": {
+        "path": "/api/mentor/chat",
+        "headers": {
+          "Authorization": "Bearer <session_token>"
+        },
+        "query": {},
+        "json": {
+          "session_id": "372d6d93-6d0a-4df8-89c2-044bdfa911aa",
+          "message": "What should I practice next?"
+        }
+      },
+      "response_status": 200,
+      "response_json": {
+        "message": {
+          "reply": "Practice HTTP based on the current quiz gap and active roadmap step.",
+          "next_actions": [
+            "Complete the available HTTP exercise"
+          ],
+          "user_message": "What should I practice next?",
+          "id": "f9130576-1cd1-4fa1-9f24-64ea6cb20b55",
+          "provider": "test_provider",
+          "model": "test_model",
+          "created_at": "2026-11-14T07:02:40.217260+00:00"
+        },
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Explicit in-memory demo mode; data is lost on restart"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "route": "/api/sessions/{session_id}",
+      "request": {
+        "path": "/api/sessions/372d6d93-6d0a-4df8-89c2-044bdfa911aa",
+        "headers": {
+          "Authorization": "Bearer <session_token>"
+        },
+        "query": {},
+        "json": null
+      },
+      "response_status": 200,
+      "response_json": {
+        "session_id": "372d6d93-6d0a-4df8-89c2-044bdfa911aa",
+        "learner": {
+          "id": "372d6d93-6d0a-4df8-89c2-044bdfa911aa",
+          "full_name": "Documentation example",
+          "track": "career_first",
+          "target_role": "Backend Engineer",
+          "experience_level": "entry",
+          "weekly_hours": 5,
+          "skills": [
+            {
+              "skill": "Python",
+              "provenance": "self_reported",
+              "verified": false,
+              "score": null,
+              "assessment_id": null,
+              "note": "Declared by learner; not independently verified"
+            },
+            {
+              "skill": "Python",
+              "provenance": "assessment_observed",
+              "verified": false,
+              "score": 100.0,
+              "assessment_id": "588bfd33-418e-4e54-a898-9f6142f14ae6",
+              "note": "Observed on this AI-generated quiz only; not independent verification"
+            },
+            {
+              "skill": "HTTP",
+              "provenance": "assessment_observed",
+              "verified": false,
+              "score": 0.0,
+              "assessment_id": "588bfd33-418e-4e54-a898-9f6142f14ae6",
+              "note": "Observed on this AI-generated quiz only; not independent verification"
+            },
+            {
+              "skill": "SQL",
+              "provenance": "assessment_observed",
+              "verified": false,
+              "score": 0.0,
+              "assessment_id": "588bfd33-418e-4e54-a898-9f6142f14ae6",
+              "note": "Observed on this AI-generated quiz only; not independent verification"
+            }
+          ],
+          "interests": [
+            "Web APIs"
+          ],
+          "created_at": "2026-11-14T07:02:40.173116+00:00"
+        },
+        "blueprint": {
+          "target_role": "Backend Engineer",
+          "rationale": "Synthetic test rationale",
+          "skills": [
+            {
+              "name": "Python",
+              "priority": "core",
+              "rationale": "Synthetic test priority",
+              "difficulty": "beginner"
+            },
+            {
+              "name": "HTTP",
+              "priority": "core",
+              "rationale": "Synthetic test priority",
+              "difficulty": "beginner"
+            },
+            {
+              "name": "SQL",
+              "priority": "core",
+              "rationale": "Synthetic test priority",
+              "difficulty": "beginner"
+            }
+          ],
+          "provider": "test_provider",
+          "model": "test_model",
+          "generated_at": "2026-11-14T07:02:40.194269+00:00",
+          "source": "ai_generated"
+        },
+        "profile_analysis": {
+          "summary": "Synthetic inferred profile",
+          "inferred_skills": [
+            "Python"
+          ],
+          "suggested_roles": [
+            "Backend Engineer"
+          ],
+          "gaps_to_assess": [
+            "HTTP"
+          ],
+          "provider": "test_provider",
+          "model": "test_model",
+          "generated_at": "2026-11-14T07:02:40.184924+00:00",
+          "evidence_note": "AI inference from self-reports and referenced source observations; not verified competence or authorship."
+        },
+        "github_repositories": [],
+        "assessment": {
+          "id": "588bfd33-418e-4e54-a898-9f6142f14ae6",
+          "learner_id": "372d6d93-6d0a-4df8-89c2-044bdfa911aa",
+          "target_role": "Backend Engineer",
+          "target_role_source": "learner_selected",
+          "questions": [
+            {
+              "id": "c43d681e-45a0-4a69-80a6-169183748805",
+              "skill": "Python",
+              "prompt": "Test question about Python",
+              "options": [
+                "A",
+                "B",
+                "C",
+                "D"
+              ],
+              "difficulty": "beginner"
+            },
+            {
+              "id": "21b61c8a-f276-4b1a-93c3-596de2cb9da0",
+              "skill": "HTTP",
+              "prompt": "Test question about HTTP",
+              "options": [
+                "A",
+                "B",
+                "C",
+                "D"
+              ],
+              "difficulty": "beginner"
+            },
+            {
+              "id": "477dbe4e-c046-468a-807e-bfc9be8b3e6d",
+              "skill": "SQL",
+              "prompt": "Test question about SQL",
+              "options": [
+                "A",
+                "B",
+                "C",
+                "D"
+              ],
+              "difficulty": "beginner"
+            }
+          ],
+          "source": "ai_generated",
+          "provider": "test_provider",
+          "model": "test_model",
+          "created_at": "2026-11-14T07:02:40.199393+00:00",
+          "submitted": true
+        },
+        "result": {
+          "assessment_id": "588bfd33-418e-4e54-a898-9f6142f14ae6",
+          "score": 33.33,
+          "correct": 1,
+          "total": 3,
+          "skill_scores": {
+            "Python": 100.0,
+            "HTTP": 0.0,
+            "SQL": 0.0
+          },
+          "evidence_note": "Score measures this AI-generated quiz only; it is not independent skill verification.",
+          "submitted_at": "2026-11-14T07:02:40.201870+00:00",
+          "explanations": [
+            {
+              "question_id": "c43d681e-45a0-4a69-80a6-169183748805",
+              "selected_index": 0,
+              "is_correct": true,
+              "explanation": "Private fixture rationale"
+            },
+            {
+              "question_id": "21b61c8a-f276-4b1a-93c3-596de2cb9da0",
+              "selected_index": 0,
+              "is_correct": false,
+              "explanation": "Private fixture rationale"
+            },
+            {
+              "question_id": "477dbe4e-c046-468a-807e-bfc9be8b3e6d",
+              "selected_index": 0,
+              "is_correct": false,
+              "explanation": "Private fixture rationale"
+            }
+          ],
+          "demonstrated_strengths": [
+            "Python"
+          ],
+          "gaps": [
+            "HTTP",
+            "SQL"
+          ],
+          "quiz_verification": [
+            {
+              "skill": "Python",
+              "score": 100.0,
+              "passed": true,
+              "evidence_scope": "current_quiz_only"
+            },
+            {
+              "skill": "HTTP",
+              "score": 0.0,
+              "passed": false,
+              "evidence_scope": "current_quiz_only"
+            },
+            {
+              "skill": "SQL",
+              "score": 0.0,
+              "passed": false,
+              "evidence_scope": "current_quiz_only"
+            }
+          ]
+        },
+        "roadmap": {
+          "id": "12dec290-1108-4d68-875e-2c6744aeb82c",
+          "learner_id": "372d6d93-6d0a-4df8-89c2-044bdfa911aa",
+          "assessment_id": "588bfd33-418e-4e54-a898-9f6142f14ae6",
+          "target_role": "Backend Engineer",
+          "summary": "Test roadmap",
+          "steps": [
+            {
+              "title": "HTTP practice",
+              "skill": "HTTP",
+              "objective": "Practice this skill",
+              "estimated_hours": 2,
+              "difficulty": "beginner",
+              "practice_task": "Complete the practice exercise",
+              "gap_priority": "high",
+              "id": "279f13c1-c57a-4037-b00e-009d0c62f153",
+              "status": "completed",
+              "prerequisites": []
+            },
+            {
+              "title": "SQL practice",
+              "skill": "SQL",
+              "objective": "Practice this skill",
+              "estimated_hours": 2,
+              "difficulty": "beginner",
+              "practice_task": "Complete the practice exercise",
+              "gap_priority": "high",
+              "id": "6f54323c-5f64-466f-b1d3-097a0b2ab38d",
+              "status": "available",
+              "prerequisites": [
+                "279f13c1-c57a-4037-b00e-009d0c62f153"
+              ]
+            },
+            {
+              "title": "Python practice",
+              "skill": "Python",
+              "objective": "Practice this skill",
+              "estimated_hours": 2,
+              "difficulty": "beginner",
+              "practice_task": "Complete the practice exercise",
+              "gap_priority": "low",
+              "id": "34870fa1-661d-4660-b380-6f3f49e42428",
+              "status": "locked",
+              "prerequisites": [
+                "6f54323c-5f64-466f-b1d3-097a0b2ab38d"
+              ]
+            }
+          ],
+          "source": "ai_generated",
+          "provider": "test_provider",
+          "model": "test_model",
+          "created_at": "2026-11-14T07:02:40.207326+00:00",
+          "revision": 2,
+          "progress_source": "learner_reported"
+        },
+        "messages": [
+          {
+            "reply": "Practice HTTP based on the current quiz gap and active roadmap step.",
+            "next_actions": [
+              "Complete the available HTTP exercise"
+            ],
+            "user_message": "What should I practice next?",
+            "id": "f9130576-1cd1-4fa1-9f24-64ea6cb20b55",
+            "provider": "test_provider",
+            "model": "test_model",
+            "created_at": "2026-11-14T07:02:40.217260+00:00"
+          }
+        ],
+        "events": [
+          {
+            "id": "05bf6edf-80c6-4030-b74d-51968073a873",
+            "agent": "Skill Detective",
+            "status": "started",
+            "timestamp": "2026-11-14T07:02:40.180066+00:00",
+            "operation_id": "eb709310-1bbb-45fa-833f-e6551ec154ea"
+          },
+          {
+            "id": "220b7de5-b4c3-40e8-b472-54554cf6ad43",
+            "agent": "Skill Detective",
+            "status": "failed",
+            "timestamp": "2026-11-14T07:02:40.180126+00:00",
+            "operation_id": "eb709310-1bbb-45fa-833f-e6551ec154ea"
+          },
+          {
+            "id": "ccdb8629-3dda-4340-9062-f37b40edb67b",
+            "agent": "Skill Detective",
+            "status": "started",
+            "timestamp": "2026-11-14T07:02:40.184474+00:00",
+            "operation_id": "4648f449-af08-432b-aca0-895748adb95b"
+          },
+          {
+            "id": "8fddc54a-9646-46b0-bc62-9441b94333a6",
+            "agent": "Skill Detective",
+            "status": "completed",
+            "timestamp": "2026-11-14T07:02:40.184530+00:00",
+            "operation_id": "4648f449-af08-432b-aca0-895748adb95b"
+          },
+          {
+            "id": "2805566c-b2d3-4e64-b2b8-8af986faadaa",
+            "agent": "Career Architect",
+            "status": "started",
+            "timestamp": "2026-11-14T07:02:40.194053+00:00",
+            "operation_id": "147fdb68-4d88-4ff8-a0dc-1b6834512860"
+          },
+          {
+            "id": "df1c33f7-994c-4b69-95ce-7af8a132045a",
+            "agent": "Career Architect",
+            "status": "completed",
+            "timestamp": "2026-11-14T07:02:40.194093+00:00",
+            "operation_id": "147fdb68-4d88-4ff8-a0dc-1b6834512860"
+          },
+          {
+            "id": "b03b0e37-ba3f-44b3-ab59-fd0a01f4402a",
+            "agent": "Skill Detective",
+            "status": "started",
+            "timestamp": "2026-11-14T07:02:40.198653+00:00",
+            "operation_id": "588bfd33-418e-4e54-a898-9f6142f14ae6"
+          },
+          {
+            "id": "7e79f3ce-9c2a-485b-9287-5225bd70be7e",
+            "agent": "Skill Detective",
+            "status": "completed",
+            "timestamp": "2026-11-14T07:02:40.198674+00:00",
+            "operation_id": "588bfd33-418e-4e54-a898-9f6142f14ae6"
+          },
+          {
+            "id": "4d963747-f179-4ffc-a561-c8cb953c29a6",
+            "agent": "Career Architect",
+            "status": "started",
+            "timestamp": "2026-11-14T07:02:40.198939+00:00",
+            "operation_id": "588bfd33-418e-4e54-a898-9f6142f14ae6"
+          },
+          {
+            "id": "5434db72-7229-4a2e-9c9d-cc70f6bf5077",
+            "agent": "Career Architect",
+            "status": "completed",
+            "timestamp": "2026-11-14T07:02:40.198981+00:00",
+            "operation_id": "588bfd33-418e-4e54-a898-9f6142f14ae6"
+          },
+          {
+            "id": "fd9840b7-abb3-4b71-8324-8a9aedd8a32e",
+            "agent": "Assessment Architect",
+            "status": "started",
+            "timestamp": "2026-11-14T07:02:40.199199+00:00",
+            "operation_id": "588bfd33-418e-4e54-a898-9f6142f14ae6"
+          },
+          {
+            "id": "455ca44f-86eb-43cb-ac26-165a659242c2",
+            "agent": "Assessment Architect",
+            "status": "completed",
+            "timestamp": "2026-11-14T07:02:40.199237+00:00",
+            "operation_id": "588bfd33-418e-4e54-a898-9f6142f14ae6"
+          },
+          {
+            "id": "53ea3a3f-cb4e-4aae-b8c9-638e8000b5ab",
+            "agent": "Learning Curator",
+            "status": "started",
+            "timestamp": "2026-11-14T07:02:40.206762+00:00",
+            "operation_id": "12dec290-1108-4d68-875e-2c6744aeb82c"
+          },
+          {
+            "id": "1a451417-2495-4971-9ec0-43d1a785ed9a",
+            "agent": "Learning Curator",
+            "status": "completed",
+            "timestamp": "2026-11-14T07:02:40.206836+00:00",
+            "operation_id": "12dec290-1108-4d68-875e-2c6744aeb82c"
+          },
+          {
+            "id": "9997e916-dfe8-485b-8564-bbe3ebe2bc9f",
+            "agent": "Adaptive Mentor",
+            "status": "started",
+            "timestamp": "2026-11-14T07:02:40.207093+00:00",
+            "operation_id": "12dec290-1108-4d68-875e-2c6744aeb82c"
+          },
+          {
+            "id": "8550fac2-a275-4e93-9192-c41bcabc744a",
+            "agent": "Adaptive Mentor",
+            "status": "completed",
+            "timestamp": "2026-11-14T07:02:40.207144+00:00",
+            "operation_id": "12dec290-1108-4d68-875e-2c6744aeb82c"
+          },
+          {
+            "id": "8d6b6479-875b-40a0-a726-31a9b4bff239",
+            "agent": "Adaptive Mentor",
+            "status": "started",
+            "timestamp": "2026-11-14T07:02:40.211763+00:00",
+            "operation_id": "3d9001ee-eb57-414a-b959-0bbe9ec450a7"
+          },
+          {
+            "id": "b29921a7-31e6-4a30-9736-adc54cae9888",
+            "agent": "Adaptive Mentor",
+            "status": "completed",
+            "timestamp": "2026-11-14T07:02:40.211815+00:00",
+            "operation_id": "3d9001ee-eb57-414a-b959-0bbe9ec450a7"
+          },
+          {
+            "id": "2a3d0e85-00c7-4dc1-97f9-3ef5ffd11f93",
+            "agent": "Adaptive Mentor",
+            "status": "started",
+            "timestamp": "2026-11-14T07:02:40.217011+00:00",
+            "operation_id": "9ab607a1-0ddf-4708-b701-0f5d02ce0023"
+          },
+          {
+            "id": "441e6625-99d5-46d8-a3d7-b36dc816df97",
+            "agent": "Adaptive Mentor",
+            "status": "completed",
+            "timestamp": "2026-11-14T07:02:40.217110+00:00",
+            "operation_id": "9ab607a1-0ddf-4708-b701-0f5d02ce0023"
+          }
+        ],
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Explicit in-memory demo mode; data is lost on restart"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "route": "/api/resources/search",
+      "request": {
+        "path": "/api/resources/search",
+        "headers": {
+          "Authorization": "Bearer <session_token>"
+        },
+        "query": {
+          "session_id": "372d6d93-6d0a-4df8-89c2-044bdfa911aa",
+          "q": "Python",
+          "include_youtube": false
+        },
+        "json": null
+      },
+      "response_status": 200,
+      "response_json": {
+        "resources": [
+          {
+            "id": "fcc-python",
+            "title": "Scientific Computing with Python",
+            "provider": "freeCodeCamp",
+            "url": "https://www.freecodecamp.org/learn/scientific-computing-with-python",
+            "kind": "course",
+            "topics": [
+              "python",
+              "programming"
+            ],
+            "provenance": "curated_official",
+            "reviewed_on": "2026-11-14",
+            "channel": null
+          },
+          {
+            "id": "mit-python",
+            "title": "Introduction to Computer Science and Programming in Python",
+            "provider": "MIT OpenCourseWare",
+            "url": "https://ocw.mit.edu/courses/6-0001-introduction-to-computer-science-and-programming-in-python-fall-2016/",
+            "kind": "course",
+            "topics": [
+              "python",
+              "computer science",
+              "programming"
+            ],
+            "provenance": "curated_official",
+            "reviewed_on": "2026-11-14",
+            "channel": null
+          },
+          {
+            "id": "python-tutorial",
+            "title": "The Python Tutorial",
+            "provider": "Python documentation",
+            "url": "https://docs.python.org/3/tutorial/",
+            "kind": "documentation",
+            "topics": [
+              "python",
+              "programming"
+            ],
+            "provenance": "curated_official",
+            "reviewed_on": "2026-11-14",
+            "channel": null
+          }
+        ],
+        "providers": [
+          {
+            "provider": "curated_catalog",
+            "status": "ok",
+            "cached": false,
+            "fetched_at": null,
+            "detail": null,
+            "retry_after_seconds": null
+          }
+        ],
+        "recommended_for": [
+          "Python"
+        ]
+      }
+    },
+    {
+      "method": "GET",
+      "route": "/api/jobs/search",
+      "request": {
+        "path": "/api/jobs/search",
+        "headers": {
+          "Authorization": "Bearer <session_token>"
+        },
+        "query": {
+          "session_id": "372d6d93-6d0a-4df8-89c2-044bdfa911aa",
+          "q": "Python"
+        },
+        "json": null
+      },
+      "response_status": 200,
+      "response_json": {
+        "jobs": [],
+        "providers": [
+          {
+            "provider": "himalayas",
+            "status": "disabled",
+            "cached": false,
+            "fetched_at": null,
+            "detail": null,
+            "retry_after_seconds": null
+          },
+          {
+            "provider": "remotive",
+            "status": "disabled",
+            "cached": false,
+            "fetched_at": null,
+            "detail": null,
+            "retry_after_seconds": null
+          },
+          {
+            "provider": "arbeitnow",
+            "status": "disabled",
+            "cached": false,
+            "fetched_at": null,
+            "detail": null,
+            "retry_after_seconds": null
+          },
+          {
+            "provider": "adzuna",
+            "status": "not_configured",
+            "cached": false,
+            "fetched_at": null,
+            "detail": null,
+            "retry_after_seconds": null
+          }
+        ],
+        "returned_count": 0,
+        "note": "Provider-limited search, not an exhaustive job-market search. Display all source links; application URLs must remain unchanged. Remotive listings are delayed by the provider.",
+        "matches": [],
+        "session_id": "372d6d93-6d0a-4df8-89c2-044bdfa911aa"
+      }
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/onboarding",
+      "request": {
+        "path": "/api/v1/onboarding",
+        "headers": {},
+        "query": {},
+        "json": {
+          "full_name": "Documentation example",
+          "target_role": "Backend Engineer",
+          "skills": [
+            "Python"
+          ],
+          "interests": [
+            "Web APIs"
+          ]
+        }
+      },
+      "response_status": 201,
+      "response_json": {
+        "learner": {
+          "id": "c0eda39f-3b5e-47fb-a2d4-4c492bb6e875",
+          "full_name": "Documentation example",
+          "track": "career_first",
+          "target_role": "Backend Engineer",
+          "experience_level": "entry",
+          "weekly_hours": 5,
+          "skills": [
+            {
+              "skill": "Python",
+              "provenance": "self_reported",
+              "verified": false,
+              "score": null,
+              "assessment_id": null,
+              "note": "Declared by learner; not independently verified"
+            }
+          ],
+          "interests": [
+            "Web APIs"
+          ],
+          "created_at": "2026-11-14T07:02:40.228913+00:00"
+        },
+        "session_token": "<session_token>",
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Explicit in-memory demo mode; data is lost on restart"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/learners/{learner_id}",
+      "request": {
+        "path": "/api/v1/learners/c0eda39f-3b5e-47fb-a2d4-4c492bb6e875",
+        "headers": {
+          "Authorization": "Bearer <session_token>"
+        },
+        "query": {},
+        "json": null
+      },
+      "response_status": 200,
+      "response_json": {
+        "learner": {
+          "id": "c0eda39f-3b5e-47fb-a2d4-4c492bb6e875",
+          "full_name": "Documentation example",
+          "track": "career_first",
+          "target_role": "Backend Engineer",
+          "experience_level": "entry",
+          "weekly_hours": 5,
+          "skills": [
+            {
+              "skill": "Python",
+              "provenance": "self_reported",
+              "verified": false,
+              "score": null,
+              "assessment_id": null,
+              "note": "Declared by learner; not independently verified"
+            }
+          ],
+          "interests": [
+            "Web APIs"
+          ],
+          "created_at": "2026-11-14T07:02:40.228913+00:00"
+        },
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Explicit in-memory demo mode; data is lost on restart"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/learners/{learner_id}/assessments",
+      "request": {
+        "path": "/api/v1/learners/c0eda39f-3b5e-47fb-a2d4-4c492bb6e875/assessments",
+        "headers": {
+          "Authorization": "Bearer <session_token>"
+        },
+        "query": {},
+        "json": null
+      },
+      "response_status": 200,
+      "response_json": {
+        "assessment": {
+          "id": "634f6b13-eb75-4763-9d7a-a420f9a663b6",
+          "learner_id": "c0eda39f-3b5e-47fb-a2d4-4c492bb6e875",
+          "target_role": "Backend Engineer",
+          "target_role_source": "learner_selected",
+          "questions": [
+            {
+              "id": "814ef337-4163-44b6-a0df-c2afc791dab9",
+              "skill": "Python",
+              "prompt": "Test question about Python",
+              "options": [
+                "A",
+                "B",
+                "C",
+                "D"
+              ],
+              "difficulty": "beginner"
+            },
+            {
+              "id": "37e24cd0-826c-4f08-b6eb-4617166219f7",
+              "skill": "HTTP",
+              "prompt": "Test question about HTTP",
+              "options": [
+                "A",
+                "B",
+                "C",
+                "D"
+              ],
+              "difficulty": "beginner"
+            },
+            {
+              "id": "0874118d-dd61-4c5f-9a84-59a520b79e8c",
+              "skill": "SQL",
+              "prompt": "Test question about SQL",
+              "options": [
+                "A",
+                "B",
+                "C",
+                "D"
+              ],
+              "difficulty": "beginner"
+            }
+          ],
+          "source": "ai_generated",
+          "provider": "test_provider",
+          "model": "test_model",
+          "created_at": "2026-11-14T07:02:40.235801+00:00",
+          "submitted": false
+        },
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Explicit in-memory demo mode; data is lost on restart"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/learners/{learner_id}/assessment",
+      "request": {
+        "path": "/api/v1/learners/c0eda39f-3b5e-47fb-a2d4-4c492bb6e875/assessment",
+        "headers": {
+          "Authorization": "Bearer <session_token>"
+        },
+        "query": {},
+        "json": null
+      },
+      "response_status": 200,
+      "response_json": {
+        "assessment": {
+          "id": "634f6b13-eb75-4763-9d7a-a420f9a663b6",
+          "learner_id": "c0eda39f-3b5e-47fb-a2d4-4c492bb6e875",
+          "target_role": "Backend Engineer",
+          "target_role_source": "learner_selected",
+          "questions": [
+            {
+              "id": "814ef337-4163-44b6-a0df-c2afc791dab9",
+              "skill": "Python",
+              "prompt": "Test question about Python",
+              "options": [
+                "A",
+                "B",
+                "C",
+                "D"
+              ],
+              "difficulty": "beginner"
+            },
+            {
+              "id": "37e24cd0-826c-4f08-b6eb-4617166219f7",
+              "skill": "HTTP",
+              "prompt": "Test question about HTTP",
+              "options": [
+                "A",
+                "B",
+                "C",
+                "D"
+              ],
+              "difficulty": "beginner"
+            },
+            {
+              "id": "0874118d-dd61-4c5f-9a84-59a520b79e8c",
+              "skill": "SQL",
+              "prompt": "Test question about SQL",
+              "options": [
+                "A",
+                "B",
+                "C",
+                "D"
+              ],
+              "difficulty": "beginner"
+            }
+          ],
+          "source": "ai_generated",
+          "provider": "test_provider",
+          "model": "test_model",
+          "created_at": "2026-11-14T07:02:40.235801+00:00",
+          "submitted": false
+        },
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Explicit in-memory demo mode; data is lost on restart"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/learners/{learner_id}/assessments/{assessment_id}/submit",
+      "request": {
+        "path": "/api/v1/learners/c0eda39f-3b5e-47fb-a2d4-4c492bb6e875/assessments/634f6b13-eb75-4763-9d7a-a420f9a663b6/submit",
+        "headers": {
+          "Authorization": "Bearer <session_token>"
+        },
+        "query": {},
+        "json": {
+          "answers": {
+            "814ef337-4163-44b6-a0df-c2afc791dab9": 0,
+            "37e24cd0-826c-4f08-b6eb-4617166219f7": 0,
+            "0874118d-dd61-4c5f-9a84-59a520b79e8c": 0
+          }
+        }
+      },
+      "response_status": 200,
+      "response_json": {
+        "result": {
+          "assessment_id": "634f6b13-eb75-4763-9d7a-a420f9a663b6",
+          "score": 33.33,
+          "correct": 1,
+          "total": 3,
+          "skill_scores": {
+            "Python": 100.0,
+            "HTTP": 0.0,
+            "SQL": 0.0
+          },
+          "evidence_note": "Score measures this AI-generated quiz only; it is not independent skill verification.",
+          "submitted_at": "2026-11-14T07:02:40.242339+00:00",
+          "explanations": [
+            {
+              "question_id": "814ef337-4163-44b6-a0df-c2afc791dab9",
+              "selected_index": 0,
+              "is_correct": true,
+              "explanation": "Private fixture rationale"
+            },
+            {
+              "question_id": "37e24cd0-826c-4f08-b6eb-4617166219f7",
+              "selected_index": 0,
+              "is_correct": false,
+              "explanation": "Private fixture rationale"
+            },
+            {
+              "question_id": "0874118d-dd61-4c5f-9a84-59a520b79e8c",
+              "selected_index": 0,
+              "is_correct": false,
+              "explanation": "Private fixture rationale"
+            }
+          ],
+          "demonstrated_strengths": [
+            "Python"
+          ],
+          "gaps": [
+            "HTTP",
+            "SQL"
+          ],
+          "quiz_verification": [
+            {
+              "skill": "Python",
+              "score": 100.0,
+              "passed": true,
+              "evidence_scope": "current_quiz_only"
+            },
+            {
+              "skill": "HTTP",
+              "score": 0.0,
+              "passed": false,
+              "evidence_scope": "current_quiz_only"
+            },
+            {
+              "skill": "SQL",
+              "score": 0.0,
+              "passed": false,
+              "evidence_scope": "current_quiz_only"
+            }
+          ]
+        },
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Explicit in-memory demo mode; data is lost on restart"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/learners/{learner_id}/result",
+      "request": {
+        "path": "/api/v1/learners/c0eda39f-3b5e-47fb-a2d4-4c492bb6e875/result",
+        "headers": {
+          "Authorization": "Bearer <session_token>"
+        },
+        "query": {},
+        "json": null
+      },
+      "response_status": 200,
+      "response_json": {
+        "result": {
+          "assessment_id": "634f6b13-eb75-4763-9d7a-a420f9a663b6",
+          "score": 33.33,
+          "correct": 1,
+          "total": 3,
+          "skill_scores": {
+            "Python": 100.0,
+            "HTTP": 0.0,
+            "SQL": 0.0
+          },
+          "evidence_note": "Score measures this AI-generated quiz only; it is not independent skill verification.",
+          "submitted_at": "2026-11-14T07:02:40.242339+00:00",
+          "explanations": [
+            {
+              "question_id": "814ef337-4163-44b6-a0df-c2afc791dab9",
+              "selected_index": 0,
+              "is_correct": true,
+              "explanation": "Private fixture rationale"
+            },
+            {
+              "question_id": "37e24cd0-826c-4f08-b6eb-4617166219f7",
+              "selected_index": 0,
+              "is_correct": false,
+              "explanation": "Private fixture rationale"
+            },
+            {
+              "question_id": "0874118d-dd61-4c5f-9a84-59a520b79e8c",
+              "selected_index": 0,
+              "is_correct": false,
+              "explanation": "Private fixture rationale"
+            }
+          ],
+          "demonstrated_strengths": [
+            "Python"
+          ],
+          "gaps": [
+            "HTTP",
+            "SQL"
+          ],
+          "quiz_verification": [
+            {
+              "skill": "Python",
+              "score": 100.0,
+              "passed": true,
+              "evidence_scope": "current_quiz_only"
+            },
+            {
+              "skill": "HTTP",
+              "score": 0.0,
+              "passed": false,
+              "evidence_scope": "current_quiz_only"
+            },
+            {
+              "skill": "SQL",
+              "score": 0.0,
+              "passed": false,
+              "evidence_scope": "current_quiz_only"
+            }
+          ]
+        },
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Explicit in-memory demo mode; data is lost on restart"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/learners/{learner_id}/roadmap",
+      "request": {
+        "path": "/api/v1/learners/c0eda39f-3b5e-47fb-a2d4-4c492bb6e875/roadmap",
+        "headers": {
+          "Authorization": "Bearer <session_token>"
+        },
+        "query": {},
+        "json": null
+      },
+      "response_status": 200,
+      "response_json": {
+        "roadmap": {
+          "id": "4f2a6a5c-d78e-4fd1-9b9c-b044d2bd2535",
+          "learner_id": "c0eda39f-3b5e-47fb-a2d4-4c492bb6e875",
+          "assessment_id": "634f6b13-eb75-4763-9d7a-a420f9a663b6",
+          "target_role": "Backend Engineer",
+          "summary": "Test roadmap",
+          "steps": [
+            {
+              "title": "HTTP practice",
+              "skill": "HTTP",
+              "objective": "Practice this skill",
+              "estimated_hours": 2,
+              "difficulty": "beginner",
+              "practice_task": "Complete the practice exercise",
+              "gap_priority": "high",
+              "id": "9330850c-5161-4a02-8090-9d13c92bc8bd",
+              "status": "available",
+              "prerequisites": []
+            },
+            {
+              "title": "SQL practice",
+              "skill": "SQL",
+              "objective": "Practice this skill",
+              "estimated_hours": 2,
+              "difficulty": "beginner",
+              "practice_task": "Complete the practice exercise",
+              "gap_priority": "high",
+              "id": "6f01df51-519d-4783-80ca-cfb395e88a93",
+              "status": "locked",
+              "prerequisites": [
+                "9330850c-5161-4a02-8090-9d13c92bc8bd"
+              ]
+            },
+            {
+              "title": "Python practice",
+              "skill": "Python",
+              "objective": "Practice this skill",
+              "estimated_hours": 2,
+              "difficulty": "beginner",
+              "practice_task": "Complete the practice exercise",
+              "gap_priority": "low",
+              "id": "651fb4f3-c8d7-4cd0-b7b2-fa9a93161d15",
+              "status": "locked",
+              "prerequisites": [
+                "6f01df51-519d-4783-80ca-cfb395e88a93"
+              ]
+            }
+          ],
+          "source": "ai_generated",
+          "provider": "test_provider",
+          "model": "test_model",
+          "created_at": "2026-11-14T07:02:40.248319+00:00",
+          "revision": 1,
+          "progress_source": "learner_reported"
+        },
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Explicit in-memory demo mode; data is lost on restart"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/learners/{learner_id}/roadmap",
+      "request": {
+        "path": "/api/v1/learners/c0eda39f-3b5e-47fb-a2d4-4c492bb6e875/roadmap",
+        "headers": {
+          "Authorization": "Bearer <session_token>"
+        },
+        "query": {},
+        "json": null
+      },
+      "response_status": 200,
+      "response_json": {
+        "roadmap": {
+          "id": "4f2a6a5c-d78e-4fd1-9b9c-b044d2bd2535",
+          "learner_id": "c0eda39f-3b5e-47fb-a2d4-4c492bb6e875",
+          "assessment_id": "634f6b13-eb75-4763-9d7a-a420f9a663b6",
+          "target_role": "Backend Engineer",
+          "summary": "Test roadmap",
+          "steps": [
+            {
+              "title": "HTTP practice",
+              "skill": "HTTP",
+              "objective": "Practice this skill",
+              "estimated_hours": 2,
+              "difficulty": "beginner",
+              "practice_task": "Complete the practice exercise",
+              "gap_priority": "high",
+              "id": "9330850c-5161-4a02-8090-9d13c92bc8bd",
+              "status": "available",
+              "prerequisites": []
+            },
+            {
+              "title": "SQL practice",
+              "skill": "SQL",
+              "objective": "Practice this skill",
+              "estimated_hours": 2,
+              "difficulty": "beginner",
+              "practice_task": "Complete the practice exercise",
+              "gap_priority": "high",
+              "id": "6f01df51-519d-4783-80ca-cfb395e88a93",
+              "status": "locked",
+              "prerequisites": [
+                "9330850c-5161-4a02-8090-9d13c92bc8bd"
+              ]
+            },
+            {
+              "title": "Python practice",
+              "skill": "Python",
+              "objective": "Practice this skill",
+              "estimated_hours": 2,
+              "difficulty": "beginner",
+              "practice_task": "Complete the practice exercise",
+              "gap_priority": "low",
+              "id": "651fb4f3-c8d7-4cd0-b7b2-fa9a93161d15",
+              "status": "locked",
+              "prerequisites": [
+                "6f01df51-519d-4783-80ca-cfb395e88a93"
+              ]
+            }
+          ],
+          "source": "ai_generated",
+          "provider": "test_provider",
+          "model": "test_model",
+          "created_at": "2026-11-14T07:02:40.248319+00:00",
+          "revision": 1,
+          "progress_source": "learner_reported"
+        },
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Explicit in-memory demo mode; data is lost on restart"
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "route": "/api/v1/learners/{learner_id}/roadmap/steps/{step_id}",
+      "request": {
+        "path": "/api/v1/learners/c0eda39f-3b5e-47fb-a2d4-4c492bb6e875/roadmap/steps/9330850c-5161-4a02-8090-9d13c92bc8bd",
+        "headers": {
+          "Authorization": "Bearer <session_token>"
+        },
+        "query": {},
+        "json": {
+          "completed": true
+        }
+      },
+      "response_status": 200,
+      "response_json": {
+        "roadmap": {
+          "id": "4f2a6a5c-d78e-4fd1-9b9c-b044d2bd2535",
+          "learner_id": "c0eda39f-3b5e-47fb-a2d4-4c492bb6e875",
+          "assessment_id": "634f6b13-eb75-4763-9d7a-a420f9a663b6",
+          "target_role": "Backend Engineer",
+          "summary": "Test roadmap",
+          "steps": [
+            {
+              "title": "HTTP practice",
+              "skill": "HTTP",
+              "objective": "Practice this skill",
+              "estimated_hours": 2,
+              "difficulty": "beginner",
+              "practice_task": "Complete the practice exercise",
+              "gap_priority": "high",
+              "id": "9330850c-5161-4a02-8090-9d13c92bc8bd",
+              "status": "completed",
+              "prerequisites": []
+            },
+            {
+              "title": "SQL practice",
+              "skill": "SQL",
+              "objective": "Practice this skill",
+              "estimated_hours": 2,
+              "difficulty": "beginner",
+              "practice_task": "Complete the practice exercise",
+              "gap_priority": "high",
+              "id": "6f01df51-519d-4783-80ca-cfb395e88a93",
+              "status": "available",
+              "prerequisites": [
+                "9330850c-5161-4a02-8090-9d13c92bc8bd"
+              ]
+            },
+            {
+              "title": "Python practice",
+              "skill": "Python",
+              "objective": "Practice this skill",
+              "estimated_hours": 2,
+              "difficulty": "beginner",
+              "practice_task": "Complete the practice exercise",
+              "gap_priority": "low",
+              "id": "651fb4f3-c8d7-4cd0-b7b2-fa9a93161d15",
+              "status": "locked",
+              "prerequisites": [
+                "6f01df51-519d-4783-80ca-cfb395e88a93"
+              ]
+            }
+          ],
+          "source": "ai_generated",
+          "provider": "test_provider",
+          "model": "test_model",
+          "created_at": "2026-11-14T07:02:40.248319+00:00",
+          "revision": 2,
+          "progress_source": "learner_reported"
+        },
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Explicit in-memory demo mode; data is lost on restart"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/learners/{learner_id}/events",
+      "request": {
+        "path": "/api/v1/learners/c0eda39f-3b5e-47fb-a2d4-4c492bb6e875/events",
+        "headers": {
+          "Authorization": "Bearer <session_token>"
+        },
+        "query": {},
+        "json": null
+      },
+      "response_status": 200,
+      "response_json": {
+        "events": [
+          {
+            "id": "88d6c5eb-42ff-4bcc-93c4-47c3be3be466",
+            "agent": "Skill Detective",
+            "status": "started",
+            "timestamp": "2026-11-14T07:02:40.234825+00:00",
+            "operation_id": "634f6b13-eb75-4763-9d7a-a420f9a663b6"
+          },
+          {
+            "id": "585a7263-6619-4d1c-ad65-b7e8d5f6746c",
+            "agent": "Skill Detective",
+            "status": "completed",
+            "timestamp": "2026-11-14T07:02:40.234840+00:00",
+            "operation_id": "634f6b13-eb75-4763-9d7a-a420f9a663b6"
+          },
+          {
+            "id": "59693839-dcc7-46d8-9ff7-71020a12e728",
+            "agent": "Career Architect",
+            "status": "started",
+            "timestamp": "2026-11-14T07:02:40.235393+00:00",
+            "operation_id": "634f6b13-eb75-4763-9d7a-a420f9a663b6"
+          },
+          {
+            "id": "6ac30d90-8336-432f-b79d-0b3cb2ef8a5d",
+            "agent": "Career Architect",
+            "status": "completed",
+            "timestamp": "2026-11-14T07:02:40.235426+00:00",
+            "operation_id": "634f6b13-eb75-4763-9d7a-a420f9a663b6"
+          },
+          {
+            "id": "20c7f308-4047-4a79-952e-ff5feb500cee",
+            "agent": "Assessment Architect",
+            "status": "started",
+            "timestamp": "2026-11-14T07:02:40.235623+00:00",
+            "operation_id": "634f6b13-eb75-4763-9d7a-a420f9a663b6"
+          },
+          {
+            "id": "0906228d-644b-4e60-beaa-ff049a83853e",
+            "agent": "Assessment Architect",
+            "status": "completed",
+            "timestamp": "2026-11-14T07:02:40.235652+00:00",
+            "operation_id": "634f6b13-eb75-4763-9d7a-a420f9a663b6"
+          },
+          {
+            "id": "494fed06-879c-404d-a5d9-23199689d213",
+            "agent": "Learning Curator",
+            "status": "started",
+            "timestamp": "2026-11-14T07:02:40.247895+00:00",
+            "operation_id": "4f2a6a5c-d78e-4fd1-9b9c-b044d2bd2535"
+          },
+          {
+            "id": "014fa629-10ba-4332-98b4-623115a6fc46",
+            "agent": "Learning Curator",
+            "status": "completed",
+            "timestamp": "2026-11-14T07:02:40.247946+00:00",
+            "operation_id": "4f2a6a5c-d78e-4fd1-9b9c-b044d2bd2535"
+          },
+          {
+            "id": "50601274-f8a0-4264-b99f-79358eaf7602",
+            "agent": "Adaptive Mentor",
+            "status": "started",
+            "timestamp": "2026-11-14T07:02:40.248137+00:00",
+            "operation_id": "4f2a6a5c-d78e-4fd1-9b9c-b044d2bd2535"
+          },
+          {
+            "id": "b170a329-cac8-4419-aff5-acb6615388ec",
+            "agent": "Adaptive Mentor",
+            "status": "completed",
+            "timestamp": "2026-11-14T07:02:40.248171+00:00",
+            "operation_id": "4f2a6a5c-d78e-4fd1-9b9c-b044d2bd2535"
+          },
+          {
+            "id": "287cea77-2ab2-4b2c-877e-594519eca492",
+            "agent": "Adaptive Mentor",
+            "status": "started",
+            "timestamp": "2026-11-14T07:02:40.251098+00:00",
+            "operation_id": "f8895aa8-02a3-4a8c-b903-a1a77384e6fd"
+          },
+          {
+            "id": "90eb3491-fb35-4ca9-802b-5cab49e65908",
+            "agent": "Adaptive Mentor",
+            "status": "completed",
+            "timestamp": "2026-11-14T07:02:40.251122+00:00",
+            "operation_id": "f8895aa8-02a3-4a8c-b903-a1a77384e6fd"
+          }
+        ],
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Explicit in-memory demo mode; data is lost on restart"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/jobs/search",
+      "request": {
+        "path": "/api/v1/jobs/search",
+        "headers": {},
+        "query": {
+          "q": "Python"
+        },
+        "json": null
+      },
+      "response_status": 200,
+      "response_json": {
+        "jobs": [],
+        "providers": [
+          {
+            "provider": "himalayas",
+            "status": "disabled",
+            "cached": false,
+            "fetched_at": null,
+            "detail": null,
+            "retry_after_seconds": null
+          },
+          {
+            "provider": "remotive",
+            "status": "disabled",
+            "cached": false,
+            "fetched_at": null,
+            "detail": null,
+            "retry_after_seconds": null
+          }
+        ],
+        "returned_count": 0,
+        "note": "Provider-limited search, not an exhaustive job-market search. Display all source links; application URLs must remain unchanged. Remotive listings are delayed by the provider."
+      }
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/learning/resources",
+      "request": {
+        "path": "/api/v1/learning/resources",
+        "headers": {},
+        "query": {
+          "q": "Python",
+          "include_youtube": false
+        },
+        "json": null
+      },
+      "response_status": 200,
+      "response_json": {
+        "resources": [
+          {
+            "id": "fcc-python",
+            "title": "Scientific Computing with Python",
+            "provider": "freeCodeCamp",
+            "url": "https://www.freecodecamp.org/learn/scientific-computing-with-python",
+            "kind": "course",
+            "topics": [
+              "python",
+              "programming"
+            ],
+            "provenance": "curated_official",
+            "reviewed_on": "2026-11-14",
+            "channel": null
+          },
+          {
+            "id": "mit-python",
+            "title": "Introduction to Computer Science and Programming in Python",
+            "provider": "MIT OpenCourseWare",
+            "url": "https://ocw.mit.edu/courses/6-0001-introduction-to-computer-science-and-programming-in-python-fall-2016/",
+            "kind": "course",
+            "topics": [
+              "python",
+              "computer science",
+              "programming"
+            ],
+            "provenance": "curated_official",
+            "reviewed_on": "2026-11-14",
+            "channel": null
+          },
+          {
+            "id": "python-tutorial",
+            "title": "The Python Tutorial",
+            "provider": "Python documentation",
+            "url": "https://docs.python.org/3/tutorial/",
+            "kind": "documentation",
+            "topics": [
+              "python",
+              "programming"
+            ],
+            "provenance": "curated_official",
+            "reviewed_on": "2026-11-14",
+            "channel": null
+          }
+        ],
+        "providers": [
+          {
+            "provider": "curated_catalog",
+            "status": "ok",
+            "cached": false,
+            "fetched_at": null,
+            "detail": null,
+            "retry_after_seconds": null
+          }
+        ]
+      }
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/learning/youtube",
+      "request": {
+        "path": "/api/v1/learning/youtube",
+        "headers": {},
+        "query": {
+          "q": "Python"
+        },
+        "json": null
+      },
+      "response_status": 200,
+      "response_json": {
+        "resources": [],
+        "providers": [
+          {
+            "provider": "youtube",
+            "status": "disabled",
+            "cached": false,
+            "fetched_at": null,
+            "detail": null,
+            "retry_after_seconds": null
+          }
+        ]
+      }
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/integrations/github/{owner}/{repo}",
+      "request": {
+        "path": "/api/v1/integrations/github/psf/requests",
+        "headers": {},
+        "query": {
+          "paths": [
+            "src/requests/api.py"
+          ]
+        },
+        "json": null
+      },
+      "response_status": 200,
+      "response_json": {
+        "repository": null,
+        "files": [],
+        "providers": [
+          {
+            "provider": "github",
+            "status": "disabled",
+            "cached": false,
+            "fetched_at": null,
+            "detail": null,
+            "retry_after_seconds": null
+          }
+        ]
+      }
+    }
+  ]
+}

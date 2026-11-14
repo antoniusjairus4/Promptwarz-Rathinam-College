@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Maximus API",
-    "version": "0.3.0"
+    "version": "0.4.0"
   },
   "paths": {
     "/api/health": {
@@ -787,6 +787,659 @@
           }
         }
       }
+    },
+    "/api/sessions": {
+      "post": {
+        "tags": [
+          "complete journey"
+        ],
+        "summary": "Create Session",
+        "operationId": "create_session_api_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionCreated"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sessions/{session_id}": {
+      "get": {
+        "tags": [
+          "complete journey"
+        ],
+        "summary": "Session",
+        "operationId": "session_api_sessions__session_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/career/blueprint": {
+      "post": {
+        "tags": [
+          "complete journey"
+        ],
+        "summary": "Blueprint",
+        "operationId": "blueprint_api_career_blueprint_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlueprintResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/profile/analyze": {
+      "post": {
+        "tags": [
+          "complete journey"
+        ],
+        "summary": "Profile",
+        "operationId": "profile_api_profile_analyze_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/github/analyze": {
+      "post": {
+        "tags": [
+          "complete journey"
+        ],
+        "summary": "Github",
+        "operationId": "github_api_github_analyze_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GithubRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GithubAnalysisResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/assessment/generate": {
+      "post": {
+        "tags": [
+          "complete journey"
+        ],
+        "summary": "Assessment",
+        "operationId": "assessment_api_assessment_generate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateAssessmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/assessment/evaluate": {
+      "post": {
+        "tags": [
+          "complete journey"
+        ],
+        "summary": "Evaluate",
+        "operationId": "evaluate_api_assessment_evaluate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluateAssessmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/roadmap/generate": {
+      "post": {
+        "tags": [
+          "complete journey"
+        ],
+        "summary": "Roadmap",
+        "operationId": "roadmap_api_roadmap_generate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoadmapRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoadmapResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/progress/update": {
+      "post": {
+        "tags": [
+          "complete journey"
+        ],
+        "summary": "Progress",
+        "operationId": "progress_api_progress_update_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProgressRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoadmapResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/mentor/chat": {
+      "post": {
+        "tags": [
+          "complete journey"
+        ],
+        "summary": "Mentor",
+        "operationId": "mentor_api_mentor_chat_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MentorRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MentorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/resources/search": {
+      "get": {
+        "tags": [
+          "complete journey"
+        ],
+        "summary": "Resources",
+        "operationId": "resources_api_resources_search_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "HTTPBearer": []
+          },
+          {}
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 100,
+              "default": "",
+              "title": "Q"
+            }
+          },
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "step_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Step Id"
+            }
+          },
+          {
+            "name": "include_youtube",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Include Youtube"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceSearchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/jobs/search": {
+      "get": {
+        "tags": [
+          "complete journey"
+        ],
+        "summary": "Jobs",
+        "operationId": "jobs_api_jobs_search_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "HTTPBearer": []
+          },
+          {}
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 100,
+              "default": "",
+              "title": "Q"
+            }
+          },
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "provider",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "all",
+                "both",
+                "himalayas",
+                "remotive",
+                "arbeitnow",
+                "adzuna"
+              ],
+              "type": "string",
+              "default": "all",
+              "title": "Provider"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 40,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobSearchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -944,6 +1597,34 @@
           "submitted_at": {
             "type": "string",
             "title": "Submitted At"
+          },
+          "explanations": {
+            "items": {
+              "$ref": "#/components/schemas/QuestionFeedback"
+            },
+            "type": "array",
+            "title": "Explanations"
+          },
+          "demonstrated_strengths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Demonstrated Strengths"
+          },
+          "gaps": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Gaps"
+          },
+          "quiz_verification": {
+            "items": {
+              "$ref": "#/components/schemas/QuizVerification"
+            },
+            "type": "array",
+            "title": "Quiz Verification"
           }
         },
         "type": "object",
@@ -980,6 +1661,118 @@
         ],
         "title": "Attribution"
       },
+      "Blueprint": {
+        "properties": {
+          "target_role": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Target Role"
+          },
+          "rationale": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Rationale"
+          },
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/BlueprintSkill"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "minItems": 3,
+            "title": "Skills"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "generated_at": {
+            "type": "string",
+            "title": "Generated At"
+          },
+          "source": {
+            "type": "string",
+            "const": "ai_generated",
+            "title": "Source",
+            "default": "ai_generated"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "target_role",
+          "rationale",
+          "skills",
+          "provider",
+          "model",
+          "generated_at"
+        ],
+        "title": "Blueprint"
+      },
+      "BlueprintResponse": {
+        "properties": {
+          "blueprint": {
+            "$ref": "#/components/schemas/Blueprint"
+          },
+          "storage": {
+            "$ref": "#/components/schemas/StorageStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "blueprint",
+          "storage"
+        ],
+        "title": "BlueprintResponse"
+      },
+      "BlueprintSkill": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "core",
+              "supporting"
+            ],
+            "title": "Priority"
+          },
+          "rationale": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Rationale"
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": [
+              "beginner",
+              "intermediate",
+              "advanced"
+            ],
+            "title": "Difficulty"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "priority",
+          "rationale",
+          "difficulty"
+        ],
+        "title": "BlueprintSkill"
+      },
       "CompletionRequest": {
         "properties": {
           "completed": {
@@ -994,6 +1787,41 @@
           "completed"
         ],
         "title": "CompletionRequest"
+      },
+      "EvaluateAssessmentRequest": {
+        "properties": {
+          "answers": {
+            "additionalProperties": {
+              "type": "integer",
+              "maximum": 3.0,
+              "minimum": 0.0
+            },
+            "type": "object",
+            "maxProperties": 5,
+            "minProperties": 1,
+            "title": "Answers"
+          },
+          "session_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Session Id"
+          },
+          "assessment_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Assessment Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "answers",
+          "session_id",
+          "assessment_id"
+        ],
+        "title": "EvaluateAssessmentRequest"
       },
       "EventsResponse": {
         "properties": {
@@ -1014,6 +1842,78 @@
           "storage"
         ],
         "title": "EventsResponse"
+      },
+      "GenerateAssessmentRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Session Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id"
+        ],
+        "title": "GenerateAssessmentRequest"
+      },
+      "GithubAnalysisResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "repositories": {
+            "items": {
+              "$ref": "#/components/schemas/RepositoryInspection"
+            },
+            "type": "array",
+            "title": "Repositories"
+          },
+          "providers": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderStatus"
+            },
+            "type": "array",
+            "title": "Providers"
+          },
+          "storage": {
+            "$ref": "#/components/schemas/StorageStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "repositories",
+          "providers",
+          "storage"
+        ],
+        "title": "GithubAnalysisResponse"
+      },
+      "GithubRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Session Id"
+          },
+          "target": {
+            "type": "string",
+            "maxLength": 250,
+            "minLength": 1,
+            "title": "Target"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "target"
+        ],
+        "title": "GithubRequest"
       },
       "HTTPValidationError": {
         "properties": {
@@ -1133,6 +2033,58 @@
         ],
         "title": "JobListing"
       },
+      "JobSearchResponse": {
+        "properties": {
+          "jobs": {
+            "items": {
+              "$ref": "#/components/schemas/JobListing"
+            },
+            "type": "array",
+            "title": "Jobs"
+          },
+          "providers": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderStatus"
+            },
+            "type": "array",
+            "title": "Providers"
+          },
+          "returned_count": {
+            "type": "integer",
+            "title": "Returned Count"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note",
+            "default": "Provider-limited search, not an exhaustive job-market search. Display all source links; application URLs must remain unchanged. Remotive listings are delayed by the provider."
+          },
+          "matches": {
+            "items": {
+              "$ref": "#/components/schemas/MatchedJob"
+            },
+            "type": "array",
+            "title": "Matches"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "jobs",
+          "providers",
+          "returned_count"
+        ],
+        "title": "JobSearchResponse"
+      },
       "JobsResponse": {
         "properties": {
           "jobs": {
@@ -1206,6 +2158,13 @@
             },
             "type": "array",
             "title": "Skills"
+          },
+          "interests": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Interests"
           },
           "created_at": {
             "type": "string",
@@ -1342,6 +2301,131 @@
         ],
         "title": "LearningResponse"
       },
+      "MatchedJob": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "title": "Job Id"
+          },
+          "matched_terms": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Matched Terms"
+          },
+          "assessment_supported_terms": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Assessment Supported Terms"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note",
+            "default": "Keyword overlap with source text, not an AI hiring probability or a complete requirements analysis."
+          }
+        },
+        "type": "object",
+        "required": [
+          "job_id",
+          "matched_terms",
+          "assessment_supported_terms"
+        ],
+        "title": "MatchedJob"
+      },
+      "MentorMessage": {
+        "properties": {
+          "reply": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reply"
+          },
+          "next_actions": {
+            "items": {
+              "type": "string",
+              "maxLength": 160,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Next Actions"
+          },
+          "user_message": {
+            "type": "string",
+            "title": "User Message"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "reply",
+          "next_actions",
+          "user_message",
+          "id",
+          "provider",
+          "model",
+          "created_at"
+        ],
+        "title": "MentorMessage"
+      },
+      "MentorRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Session Id"
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Message"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "message"
+        ],
+        "title": "MentorRequest"
+      },
+      "MentorResponse": {
+        "properties": {
+          "message": {
+            "$ref": "#/components/schemas/MentorMessage"
+          },
+          "storage": {
+            "$ref": "#/components/schemas/StorageStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "storage"
+        ],
+        "title": "MentorResponse"
+      },
       "OnboardingRequest": {
         "properties": {
           "full_name": {
@@ -1381,6 +2465,16 @@
             "type": "array",
             "maxItems": 20,
             "title": "Skills"
+          },
+          "interests": {
+            "items": {
+              "type": "string",
+              "maxLength": 160,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Interests"
           },
           "experience_level": {
             "type": "string",
@@ -1427,6 +2521,121 @@
           "storage"
         ],
         "title": "OnboardingResponse"
+      },
+      "ProfileAnalysis": {
+        "properties": {
+          "summary": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Summary"
+          },
+          "inferred_skills": {
+            "items": {
+              "type": "string",
+              "maxLength": 160,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 15,
+            "title": "Inferred Skills"
+          },
+          "suggested_roles": {
+            "items": {
+              "type": "string",
+              "maxLength": 160,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 5,
+            "minItems": 1,
+            "title": "Suggested Roles"
+          },
+          "gaps_to_assess": {
+            "items": {
+              "type": "string",
+              "maxLength": 160,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Gaps To Assess"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "generated_at": {
+            "type": "string",
+            "title": "Generated At"
+          },
+          "evidence_note": {
+            "type": "string",
+            "title": "Evidence Note",
+            "default": "AI inference from self-reports and referenced source observations; not verified competence or authorship."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "summary",
+          "inferred_skills",
+          "suggested_roles",
+          "gaps_to_assess",
+          "provider",
+          "model",
+          "generated_at"
+        ],
+        "title": "ProfileAnalysis"
+      },
+      "ProfileResponse": {
+        "properties": {
+          "profile": {
+            "$ref": "#/components/schemas/ProfileAnalysis"
+          },
+          "storage": {
+            "$ref": "#/components/schemas/StorageStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "profile",
+          "storage"
+        ],
+        "title": "ProfileResponse"
+      },
+      "ProgressRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Session Id"
+          },
+          "step_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Step Id"
+          },
+          "completed": {
+            "type": "boolean",
+            "const": true,
+            "title": "Completed"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "step_id",
+          "completed"
+        ],
+        "title": "ProgressRequest"
       },
       "ProviderStatus": {
         "properties": {
@@ -1507,9 +2716,13 @@
           },
           "options": {
             "items": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 600,
+              "minLength": 1
             },
             "type": "array",
+            "maxItems": 4,
+            "minItems": 4,
             "title": "Options"
           },
           "difficulty": {
@@ -1526,6 +2739,118 @@
           "difficulty"
         ],
         "title": "PublicQuestion"
+      },
+      "QuestionFeedback": {
+        "properties": {
+          "question_id": {
+            "type": "string",
+            "title": "Question Id"
+          },
+          "selected_index": {
+            "type": "integer",
+            "title": "Selected Index"
+          },
+          "is_correct": {
+            "type": "boolean",
+            "title": "Is Correct"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question_id",
+          "selected_index",
+          "is_correct",
+          "explanation"
+        ],
+        "title": "QuestionFeedback"
+      },
+      "QuizVerification": {
+        "properties": {
+          "skill": {
+            "type": "string",
+            "title": "Skill"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "passed": {
+            "type": "boolean",
+            "title": "Passed"
+          },
+          "evidence_scope": {
+            "type": "string",
+            "const": "current_quiz_only",
+            "title": "Evidence Scope",
+            "default": "current_quiz_only"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill",
+          "score",
+          "passed"
+        ],
+        "title": "QuizVerification"
+      },
+      "RepositoryInspection": {
+        "properties": {
+          "repository": {
+            "$ref": "#/components/schemas/RepositoryMetadata"
+          },
+          "tree_sha": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tree Sha"
+          },
+          "inspected_paths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Inspected Paths"
+          },
+          "architecture_paths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Architecture Paths"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/SourceFinding"
+            },
+            "type": "array",
+            "title": "Findings"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Limitations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "repository",
+          "inspected_paths",
+          "architecture_paths",
+          "findings",
+          "limitations"
+        ],
+        "title": "RepositoryInspection"
       },
       "RepositoryMetadata": {
         "properties": {
@@ -1648,6 +2973,37 @@
         ],
         "title": "RepositoryResponse"
       },
+      "ResourceSearchResponse": {
+        "properties": {
+          "resources": {
+            "items": {
+              "$ref": "#/components/schemas/LearningResource"
+            },
+            "type": "array",
+            "title": "Resources"
+          },
+          "providers": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderStatus"
+            },
+            "type": "array",
+            "title": "Providers"
+          },
+          "recommended_for": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Recommended For"
+          }
+        },
+        "type": "object",
+        "required": [
+          "resources",
+          "providers"
+        ],
+        "title": "ResourceSearchResponse"
+      },
       "ResultResponse": {
         "properties": {
           "result": {
@@ -1737,6 +3093,27 @@
         ],
         "title": "Roadmap"
       },
+      "RoadmapRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Session Id"
+          },
+          "refresh": {
+            "type": "boolean",
+            "title": "Refresh",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id"
+        ],
+        "title": "RoadmapRequest"
+      },
       "RoadmapResponse": {
         "properties": {
           "roadmap": {
@@ -1779,11 +3156,31 @@
             "minimum": 1.0,
             "title": "Estimated Hours"
           },
+          "difficulty": {
+            "type": "string",
+            "enum": [
+              "beginner",
+              "intermediate",
+              "advanced"
+            ],
+            "title": "Difficulty",
+            "default": "beginner"
+          },
           "practice_task": {
             "type": "string",
             "maxLength": 2000,
             "minLength": 1,
             "title": "Practice Task"
+          },
+          "gap_priority": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Gap Priority",
+            "default": "high"
           },
           "id": {
             "type": "string",
@@ -1819,6 +3216,214 @@
           "prerequisites"
         ],
         "title": "RoadmapStep"
+      },
+      "SessionAction": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Session Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id"
+        ],
+        "title": "SessionAction"
+      },
+      "SessionCreate": {
+        "properties": {
+          "full_name": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Full Name",
+            "default": "Learner"
+          },
+          "track": {
+            "type": "string",
+            "enum": [
+              "career_first",
+              "skills_first"
+            ],
+            "title": "Track",
+            "default": "career_first"
+          },
+          "target_role": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Role"
+          },
+          "skills": {
+            "items": {
+              "type": "string",
+              "maxLength": 160,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Skills"
+          },
+          "interests": {
+            "items": {
+              "type": "string",
+              "maxLength": 160,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Interests"
+          },
+          "experience_level": {
+            "type": "string",
+            "enum": [
+              "entry",
+              "mid",
+              "senior"
+            ],
+            "title": "Experience Level",
+            "default": "entry"
+          },
+          "weekly_hours": {
+            "type": "integer",
+            "maximum": 40.0,
+            "minimum": 1.0,
+            "title": "Weekly Hours",
+            "default": 5
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SessionCreate"
+      },
+      "SessionCreated": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "session_token": {
+            "type": "string",
+            "title": "Session Token"
+          },
+          "session": {
+            "$ref": "#/components/schemas/SessionView"
+          },
+          "storage": {
+            "$ref": "#/components/schemas/StorageStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "session_token",
+          "session",
+          "storage"
+        ],
+        "title": "SessionCreated"
+      },
+      "SessionView": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "learner": {
+            "$ref": "#/components/schemas/Learner"
+          },
+          "blueprint": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Blueprint"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "profile_analysis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProfileAnalysis"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "github_repositories": {
+            "items": {
+              "$ref": "#/components/schemas/RepositoryInspection"
+            },
+            "type": "array",
+            "title": "Github Repositories"
+          },
+          "assessment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Assessment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssessmentResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "roadmap": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Roadmap"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/MentorMessage"
+            },
+            "type": "array",
+            "title": "Messages"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/AgentEvent"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "storage": {
+            "$ref": "#/components/schemas/StorageStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "learner",
+          "events",
+          "storage"
+        ],
+        "title": "SessionView"
       },
       "SkillEvidence": {
         "properties": {
@@ -1941,6 +3546,50 @@
           "status"
         ],
         "title": "SourceFile"
+      },
+      "SourceFinding": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "statement": {
+            "type": "string",
+            "title": "Statement"
+          },
+          "file_path": {
+            "type": "string",
+            "title": "File Path"
+          },
+          "source_url": {
+            "type": "string",
+            "title": "Source Url"
+          },
+          "sha": {
+            "type": "string",
+            "title": "Sha"
+          },
+          "excerpt": {
+            "type": "string",
+            "title": "Excerpt"
+          },
+          "verified": {
+            "type": "boolean",
+            "const": false,
+            "title": "Verified",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "statement",
+          "file_path",
+          "source_url",
+          "sha",
+          "excerpt"
+        ],
+        "title": "SourceFinding"
       },
       "StorageStatus": {
         "properties": {

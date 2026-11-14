@@ -32,9 +32,9 @@ Response: `{repository, files, providers}`. Omit paths for metadata only. `repos
 
 Select at most three relative source/documentation paths, at most 64 KiB each. Each file returns `{path, url, sha, content, status, detail}`; statuses are `ok`, `error`, `too_large`, `unsupported`. Render content **only as escaped text**, never execute it or insert it as HTML. Preserve blob SHA and source link as evidence provenance. Files are fetched from the default branch at retrieval time; SHAs identify the actual individual blobs. No repository clone, dependency install, code execution, author verification or AI skill inference occurs.
 
-No-key GitHub calls are public-only; a configured unrelated token is deliberately not used. Private repos, arbitrary URLs, path traversal, hidden files, credentials and key files are rejected. Metadata can succeed while selected files fail: keep available metadata and show per-file/provider states. Public unauthenticated API rate limits may be shared with other users on the deployment IP.
+GitHub calls remain public-only and now use the configured backend GITHUB_TOKEN when available. No token is exposed to the browser. Private repos, arbitrary URLs, path traversal, hidden files, credentials and key files are rejected. Metadata can succeed while selected files fail: keep available metadata and show per-file/provider states. Public unauthenticated API rate limits may be shared with other users on the deployment IP.
 
-All external requests have an 8-second total deadline and bounded responses. Different job providers run concurrently. GitHub metadata plus up to three files is bounded but sequential (allow a 45-second client timeout). Use loading/empty/error/partial-success states; do not fake data. All features can be independently disabled through backend configuration.
+External requests have an 8-second total deadline by default (GitHub requests allow up to 16 seconds) and bounded responses. Different job providers run concurrently. GitHub metadata plus up to three files is bounded but sequential (allow a 45-second client timeout). Use loading/empty/error/partial-success states; do not fake data. All features can be independently disabled through backend configuration.
 
 ## Verification on November 14, 2026
 
@@ -44,3 +44,8 @@ All external requests have an 8-second total deadline and bounded responses. Dif
 - GitHub: HTTP 403, `X-RateLimit-Remaining: 0`; rate-limit state and retry interval verified. Metadata/content success paths covered by deterministic test fixtures; live source retrieval remains blocked until quota resets.
 
 Sources and API terms: [Himalayas API](https://himalayas.app/api), [Himalayas terms](https://himalayas.app/terms), [Remotive API and terms](https://github.com/remotive-com/remote-jobs-api), [GitHub REST rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api), [GitHub contents](https://docs.github.com/en/rest/repos/contents), [YouTube search](https://developers.google.com/youtube/v3/docs/search/list).
+
+
+Complete session-aware job/resource matching, authenticated GitHub inspection and mentor integration now use the session facade documented in [FRONTEND_HANDOFF.md](FRONTEND_HANDOFF.md). Arbeitnow and configured Adzuna are additional optional providers on `/api/jobs/search`; all original API v1 routes remain compatible.
+
+Adzuna attribution when its results are available: render “Jobs by Adzuna” and the official linked Adzuna logo/source branding as required by its API terms; keep the provider redirect URL unchanged. Arbeitnow results require a visible Arbeitnow source link. Do not claim any returned listing is an exhaustive requirements analysis. Optional Adzuna is selected by configured app credentials and country.

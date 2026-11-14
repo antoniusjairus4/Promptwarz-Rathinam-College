@@ -61,7 +61,7 @@ class ExternalServices:
         self.settings = settings
         self.client = client or httpx.AsyncClient(timeout=httpx.Timeout(settings.external_timeout_seconds), follow_redirects=False, headers={"User-Agent": "Maximus/0.3 (+https://github.com/antoniusjairus4/Promptwarz-Rathinam-College)", "Accept": "application/json"}, limits=httpx.Limits(max_connections=8))
         self.cache = {}
-        self.locks = {name: asyncio.Lock() for name in ["himalayas", "remotive", "github", "youtube"]}
+        self.locks = {name: asyncio.Lock() for name in ["himalayas", "remotive", "github", "youtube", "arbeitnow", "adzuna"]}
         self.cooldowns = {}
         self.next_request = {}
         self._load_remotive()
@@ -83,8 +83,9 @@ class ExternalServices:
     async def _json(self, url, *, params=None, headers=None, max_bytes=4_000_000):
         try:
             # Total elapsed deadline supplements HTTPX's per-operation timeouts.
-            async with asyncio.timeout(self.settings.external_timeout_seconds):
-                async with self.client.stream("GET", url, params=params, headers=headers) as response:
+            budget = min(20, self.settings.external_timeout_seconds * 2) if urlsplit(url).hostname == "api.github.com" else self.settings.external_timeout_seconds
+            async with asyncio.timeout(budget):
+                async with self.client.stream("GET", url, params=params, headers=headers, timeout=budget) as response:
                     if response.status_code in {403, 429} and (response.status_code == 429 or response.headers.get("x-ratelimit-remaining") == "0"):
                         delay = response.headers.get("retry-after", "60")
                         try:
@@ -100,6 +101,8 @@ class ExternalServices:
                         if len(data) > max_bytes:
                             raise ProviderFailure("Provider response exceeded size limit")
             result = json.loads(data)
+            if isinstance(result, list):
+                result = {"items": result}
             if not isinstance(result, dict):
                 raise ProviderFailure("Invalid provider response")
             return result
@@ -116,7 +119,7 @@ class ExternalServices:
             cached = self.cache.get((provider, key))
             if cached and cached[0] > time.time():
                 return deepcopy(cached[1]), ProviderStatus(provider=provider, status="ok", cached=True, fetched_at=cached[2])
-            cooldown = self.cooldowns.get(provider)
+            cooldown = self.cooldowns.get(provider) or self.cooldowns.get((provider, key))
             if cooldown and cooldown[0] > time.time():
                 status = cooldown[1].model_copy(deep=True)
                 status.retry_after_seconds = max(1, int(cooldown[0] - time.time()))
@@ -149,7 +152,8 @@ class ExternalServices:
                 return data, ProviderStatus(provider=provider, status="ok", fetched_at=stamp)
             except ProviderFailure as exc:
                 status = ProviderStatus(provider=provider, status="rate_limited" if exc.rate_limited else "error", detail=exc.detail, retry_after_seconds=exc.retry_after or 60)
-                self.cooldowns[provider] = (time.time() + (exc.retry_after or 60), status)
+                cooldown_key = provider if exc.rate_limited else (provider, key)
+                self.cooldowns[cooldown_key] = (time.time() + (exc.retry_after or 60), status)
                 return None, status
 
     def normalize(self, source, row):
@@ -161,6 +165,19 @@ class ExternalServices:
             location = ", ".join(str(x) for x in locations) if locations else "Worldwide"
             published, expires = date(row.get("pubDate")), date(row.get("expiryDate"))
             tags, employment = row.get("categories") or [], row.get("employmentType")
+        elif source == "arbeitnow":
+            apply = source_url = web_url(row.get("url"))
+            title, company = row.get("title"), row.get("company_name")
+            location = row.get("location")
+            published, expires = date(row.get("created_at")), None
+            tags, employment = row.get("tags") or [], ", ".join(row.get("job_types") or []) or None
+        elif source == "adzuna":
+            apply = web_url(row.get("redirect_url"))
+            source_url = apply or "https://www.adzuna.com"
+            title, company = row.get("title"), (row.get("company") or {}).get("display_name")
+            location = (row.get("location") or {}).get("display_name")
+            published, expires = date(row.get("created")), None
+            tags, employment = [(row.get("category") or {}).get("label", "")], row.get("contract_type")
         else:
             apply = source_url = web_url(row.get("url"))
             title, company = row.get("title"), row.get("company_name")
@@ -176,6 +193,16 @@ class ExternalServices:
         async def one(name):
             if name == "himalayas":
                 data, status = await self.fetch(name, query.casefold(), "https://himalayas.app/jobs/api/search", params={"q": query, "page": 1})
+            elif name == "arbeitnow":
+                data, status = await self.fetch(name, "feed", "https://www.arbeitnow.com/api/job-board-api", ttl=21600, max_bytes=8_000_000)
+                if data is not None:
+                    data = {"jobs": data.get("data")}
+            elif name == "adzuna":
+                if not self.settings.adzuna_app_id or not self.settings.adzuna_app_key.get_secret_value():
+                    return [], ProviderStatus(provider="adzuna", status="not_configured")
+                data, status = await self.fetch(name, query.casefold(), "https://api.adzuna.com/v1/api/jobs/" + self.settings.adzuna_country + "/search/1", params={"app_id": self.settings.adzuna_app_id, "app_key": self.settings.adzuna_app_key.get_secret_value(), "what": query, "results_per_page": 20, "content-type": "application/json"}, ttl=3600)
+                if data is not None:
+                    data = {"jobs": data.get("results")}
             else:
                 # One six-hour feed for all searches, not one upstream request per query.
                 data, status = await self.fetch(name, "feed", "https://remotive.com/api/remote-jobs", params={"limit": 200}, ttl=21600, max_bytes=8_000_000)
@@ -190,12 +217,12 @@ class ExternalServices:
                         try:
                             job = self.normalize(name, row)
                             searchable = " ".join(str(row.get(k) or "") for k in ["title", "company_name", "companyName", "description", "category", "tags"]).casefold()
-                            if job and unexpired(job) and (name != "remotive" or all(word in searchable for word in query.casefold().split())):
+                            if job and unexpired(job) and (name not in {"remotive", "arbeitnow"} or all(word in searchable for word in query.casefold().split())):
                                 output.append(job)
                         except (ValueError, TypeError, AttributeError):
                             continue
             return output, status
-        names = ["himalayas", "remotive"] if provider == "both" else [provider]
+        names = ["himalayas", "remotive", "arbeitnow", "adzuna"] if provider == "all" else ["himalayas", "remotive"] if provider == "both" else [provider]
         results = await asyncio.gather(*(one(name) for name in names), return_exceptions=True)
         jobs, statuses, seen = [], [], {}
         for name, result in zip(names, results):
@@ -239,10 +266,15 @@ class ExternalServices:
                 continue
         return resources, status
 
+    def github_headers(self):
+        headers = {"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}
+        if self.settings.github_token.get_secret_value():
+            headers["Authorization"] = "Bearer " + self.settings.github_token.get_secret_value()
+        return headers
+
     async def github(self, owner, repo, paths):
         base = "https://api.github.com/repos/" + quote(owner, safe="") + "/" + quote(repo, safe="")
-        headers = {"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}
-        # Public/no-key by design, even if an unrelated token is configured locally.
+        headers = self.github_headers()
         data, status = await self.fetch("github", (owner.casefold(), repo.casefold()), base, headers=headers, ttl=1800)
         if data is None:
             return RepositoryResponse(repository=None, files=[], providers=[status])

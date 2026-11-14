@@ -31,11 +31,14 @@ class Settings(BaseSettings):
     mongodb_timeout_ms: int = Field(default=3000, ge=100, le=10000)
     nvidia_base_url: str = "https://integrate.api.nvidia.com/v1"
     llm_timeout_seconds: float = Field(default=45, ge=1, le=120)
-    llm_max_tokens: int = Field(default=3072, ge=256, le=8192)
+    llm_max_tokens: int = Field(default=4096, ge=256, le=8192)
     himalayas_enabled: bool = True
     remotive_enabled: bool = True
     github_enabled: bool = True
     youtube_enabled: bool = True
+    arbeitnow_enabled: bool = True
+    adzuna_enabled: bool = True
+    adzuna_country: Literal["in", "gb", "us", "au", "ca", "de", "fr", "nl", "nz", "pl", "sg", "za", "at", "br", "ch", "it"] = "in"
     external_timeout_seconds: float = Field(default=8, ge=1, le=20)
     external_cache_dir: Path = Path(__file__).resolve().parents[2] / ".cache"
     frontend_origin: str = "http://localhost:5173"
