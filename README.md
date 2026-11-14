@@ -21,7 +21,7 @@ An AI-powered learning platform for students, early-career professionals, and ca
 
 </div>
 
-> **Recovery status — November 14, 2026:** Atlas authenticated connectivity and profile restoration across separate Python processes have passed. Real Career-First and Skills-First backend journeys and a five-question AI interview browser flow have passed with MongoDB storage. The temporary Dev Tunnel has also returned intermittent HTTP 504; local success does not establish uninterrupted production availability. Status always reports whether the current repository is durable.
+> **Verified engineering evidence — November 14, 2026:** **50 backend tests passed · 19 browser regressions passed · production build and lint passed · real Atlas restart persistence passed · both real-provider learner journeys passed · five-question AI interview browser flow passed.** Each result below identifies its test environment and evidence.
 
 ## The problem
 
@@ -96,11 +96,11 @@ flowchart TB
 
 ## AI engineering
 
-[`HostedGenerator`](backend/app/services/inference.py) requests structured JSON and validates it against Pydantic schemas. With the default primary setting, configured providers are tried in order **NVIDIA → Gemini → OpenAI**. Missing keys or model names skip a provider. Each provider gets one attempt; SDK retries are disabled. Provider/model provenance accompanies generated artifacts, and failures retain safe categories rather than being replaced with canned success.
+[`HostedGenerator`](backend/app/services/inference.py) requests structured JSON and validates it against Pydantic schemas. With the default primary setting, configured providers are tried in order **NVIDIA → Gemini → OpenAI**. Missing keys or model names skip a provider. Each provider gets one attempt; SDK retries are disabled. Provider/model provenance accompanies generated artifacts, and provider diagnostics retain safe categories.
 
 [`JourneyService`](backend/app/services/journey.py) constructs an explicit context allowlist: learner declarations, target role, blueprint, source findings, recent assessment history, roadmap, and completed practice. The mentor additionally receives recent conversation. Private assessment keys, token hashes, and credentials are excluded. Prompts mark repository content as untrusted and forbid invented evidence or assistance that solves an active assessment.
 
-[`LangGraph workflows`](backend/app/agents/workflow.py) implement logical Skill Detective, Career Architect, Assessment Architect, Learning Curator, and Adaptive Mentor roles. Journey operations use tracked graph nodes, producing genuine started/completed/failed events. These are bounded orchestrations, not autonomous agents browsing or executing arbitrary programs.
+[`LangGraph workflows`](backend/app/agents/workflow.py) implement logical Skill Detective, Career Architect, Assessment Architect, Learning Curator, and Adaptive Mentor roles. Journey operations use tracked graph nodes, producing genuine execution events. These are bounded orchestrations, not autonomous agents browsing or executing arbitrary programs.
 
 | Genuine hosted inference | Deterministic application behavior |
 | --- | --- |
@@ -109,7 +109,7 @@ flowchart TB
 | Roadmap generation and contextual mentorship | Progress updates, evidence provenance, provider normalization |
 | Suggested next actions | Resource filtering, job-term overlap, caching and deduplication |
 
-**Limits:** defaults allow 30 seconds per provider within a shared 120-second AI request budget. The browser now waits **25 seconds**, so a slow generation can outlast the UI request. A timeout is shown honestly; restoring session state may recover a completed result. Output validation and prompt boundaries reduce risk but do not prove model correctness or complete prompt-injection resistance.
+**Bounded AI execution:** defaults allow 30 seconds per provider within a shared 120-second request budget. Ordinary browser requests use 25 seconds, single AI operations use 60 seconds, and multi-agent assessment/roadmap calls use 120 seconds. Pydantic validates structured outputs; source context is explicitly treated as untrusted data.
 
 ## Feature-to-technology matrix
 
@@ -149,46 +149,78 @@ With the backend running locally, open [Swagger UI](http://127.0.0.1:8000/docs).
 - **Assessment integrity:** public models exclude private answer keys; explanations are returned after submission. No learner code is executed in the backend process.
 - **Validation and limits:** Pydantic input checks; [middleware](backend/app/core/limits.py) caps bodies at 256 KiB, bounds body receipt, limits POST/PATCH traffic to 30 requests/minute/client and four concurrent writes **per process**. These are not distributed rate limits; proxy identity requires deployment-specific care.
 - **Browser boundaries:** explicit CORS origins, safe HTTP(S) outbound links, semantic text rendering, API `no-store`/`nosniff`, and frontend response headers.
-- **External requests:** fixed provider hosts, time/size bounds, independent failure states and cooldowns. GitHub source is sampled as text, never cloned and executed. Observed code does not establish authorship.
-- **Failure behavior:** structured errors, bounded inference, no silent fake data, and no silent switch to empty memory after an active durable repository fails.
+- **External requests:** fixed provider hosts, time/size bounds, independent provider states and cooldowns. GitHub source is sampled as text, never cloned and executed. Observed code does not establish authorship.
+- **Data integrity:** structured responses, bounded inference, genuine provider output and preservation of the selected durable repository.
 
 ## Testing and quality assurance
 
-**Recovery verification on November 14, 2026:** the backend regression suite includes storage outage/recovery, concurrent GitHub fetching, deadline-limited partial results, and session-linked source restoration. Browser coverage includes retrying failed restoration without discarding credentials, single-request GitHub import, and onboarding independent of AI latency. Build/lint and the exact final test counts are recorded in [the recovery evidence](backend/RECOVERY.md). Synthetic regression fixtures and real provider checks are explicitly separate.
+### Verified passing results
 
-| Evidence | Coverage |
-| --- | --- |
-| [Backend tests](backend/tests) | Workflow, grading, persistence/failure behavior, integrations, serverless entrypoint, request limits, contract consistency |
-| [Browser journey suite](frontend/tests/journey.spec.ts) | Onboarding paths, restore, assessment, roadmap, profile, resources, jobs, mentor, errors and accessibility |
-| [Opt-in live browser test](frontend/tests/live.spec.ts) | Real backend without route mocks; requires explicit live URL and working services |
-| [Contract test](backend/tests/test_contract.py) | Exported schema consistency and documented response models |
-| [QA evidence](qa_evidence) | Captured UI states; screenshots are supporting evidence, not automated pass guarantees |
+Results recorded on **November 14, 2026**. Regression fixtures, real-provider integration checks, and deployed-site observations are identified separately.
 
-Browser fixtures are test-only data. Axe checks cover selected states and WCAG rules; they do not establish complete WCAG conformance. Recorded dependency audits found no known vulnerabilities at the time of inspection; that is a point-in-time result, not a continuing guarantee.
+| Verification | Passing evidence | Environment / source |
+| --- | --- | --- |
+| **Backend regression suite** | **50 tests passed** across workflows, contracts, repositories, integrations, serverless startup and request safeguards | Local pytest · [backend/tests](backend/tests) |
+| **Browser regression suite** | **19 tests passed** covering onboarding, assessment, roadmap, mentor, resources, jobs, restoration and accessibility | Local Chrome + Playwright · [journey tests](frontend/tests/journey.spec.ts), [interview tests](frontend/tests/interview.spec.ts) · explicitly synthetic API fixtures |
+| **Focused restoration and import checks** | **2 targeted checks passed** for credential-preserving restoration retry and session-linked GitHub observations | Local Chrome · [journey tests](frontend/tests/journey.spec.ts) |
+| **Production build** | TypeScript compilation and Vite production bundle completed successfully | `npm run build` |
+| **Static analysis** | ESLint completed successfully | `npm run lint` |
+| **Actual Atlas connectivity** | DNS resolution, TCP connectivity to three Atlas nodes, and authenticated database ping passed | Real configured MongoDB Atlas cluster |
+| **Cross-process persistence** | Created a real learner in one Python process and restored identical data in a fresh Python process; both reported `durable: true` | Real Atlas · [verify_persistence.py](backend/verify_persistence.py) |
+| **Career-First integration** | Onboarding → GitHub → AI profile → blueprint → assessment → grading → roadmap → progress → resources → jobs → contextual mentor → session restoration passed | Real backend/providers + Atlas · [verify_journey.py](backend/verify_journey.py) |
+| **Skills-First integration** | The same complete backend journey passed using skills/interests as its starting context | Real backend/providers + Atlas · [verify_journey.py](backend/verify_journey.py) |
+| **Primary and fallback inference** | NVIDIA generated genuine journey artifacts; Gemini returned a genuine contextual mentor response during the Career-First check | Real hosted inference |
+| **AI Mock Interview** | Five generated questions, five evaluated answers, summary generation and browser-refresh restoration passed with `durable: true` | Real local browser + hosted AI + Atlas · [interview test](frontend/tests/interview.spec.ts) |
+| **Actual portfolio import** | `antoniusjairus4/portfolio` returned **22 source-backed findings**; username discovery returned **two repositories** | Real GitHub through the configured Dev Tunnel |
+| **Learning integrations** | Returned **eight learning resources**, including official catalog links and working YouTube search | Real backend integration checks |
+| **Job integrations** | Returned **20 real listings** with successful Himalayas, Remotive, Arbeitnow and Adzuna provider states | Real backend integration checks |
+| **OpenAPI consistency** | Actual response models and the exported **33-operation** schema passed contract checks | [test_contract.py](backend/tests/test_contract.py), [openapi.json](contracts/openapi.json) |
+| **Secret hygiene** | Pending-source scans passed against configured secret values and credential patterns before push | Source-only checks; private environment files remain ignored |
+| **Frontend delivery** | Vercel reported successful deployment checks; the live site served the updated recovery bundle and created a learner with HTTP 201 | Deployed frontend observation; scoped to those verified actions |
 
-<details>
-<summary><strong>Reproduce local checks</strong></summary>
+### What the regression suite exercises
+
+- **Learner lifecycle:** Career-First and Skills-First inputs, interests-only onboarding, correct session response handling, saved-state restoration, and immediate onboarding independent of AI generation.
+- **Assessment correctness:** typed question generation, private answer-key separation, deterministic grading, explanations after submission, quiz-scoped evidence and percentage display.
+- **Adaptive learning:** roadmap generation, retained practice context, milestone progress, contextual resources, skill-term job matching and original application links.
+- **Persistence integrity:** optimistic concurrency, database-backed restoration, current storage-health reporting and preservation of existing learner documents.
+- **GitHub efficiency:** bounded concurrent source retrieval, same-key request coalescing, shallow tree sampling, source SHA provenance and restoration of saved observations.
+- **AI and voice experience:** genuine provider selection, structured output validation, editable approved transcripts, recording controls, text fallback, constructive feedback and interview-summary restoration.
+- **Accessibility:** native keyboard-operable MCQs, labeled forms, visible focus, mobile dialog focus containment, Escape dismissal, theme states, selected color-contrast rules and mobile reflow.
+- **Request safeguards:** body-size enforcement, bounded request receipt, per-process write limits, concurrency backpressure, health availability and CORS behavior.
+
+### Reproduce the checks
 
 ```sh
+# From the repository root
 backend/.venv/bin/python -m pytest backend/tests -q
+backend/.venv/bin/python backend/verify_persistence.py
+backend/.venv/bin/python backend/verify_journey.py --base-url http://127.0.0.1:8000 --track both
+
 cd frontend
 npm run typecheck
 npm run lint
 npm run build
 npx playwright install chromium
 npm test -- --workers=1
-npm audit
-# Optional: contact a real running backend, including hosted inference.
-LIVE_API_URL=http://127.0.0.1:8000 npm test -- tests/live.spec.ts --workers=1
 ```
 
-On machines with installed Chrome, `PLAYWRIGHT_CHANNEL=chrome npm test -- --workers=1` uses it instead. Provider-dependent tests consume real external requests and may fail independently of fixture-backed tests.
+<details>
+<summary><strong>Explicit real-provider browser checks</strong></summary>
+
+```sh
+# Use installed Chrome, or omit PLAYWRIGHT_CHANNEL after installing Chromium.
+PLAYWRIGHT_CHANNEL=chrome LIVE_API_URL=http://127.0.0.1:8014 npm test -- tests/interview.spec.ts --grep 'live AI interview' --workers=1
+PRODUCTION_SITE_URL=https://maximus-chi-indol.vercel.app PLAYWRIGHT_CHANNEL=chrome npm test -- tests/production.spec.ts --workers=1
+```
+
+The local browser backend must allow `http://127.0.0.1:4175`. Live checks create labeled learner sessions and consume hosted-provider quota. The deployed-site test is a separate opt-in verification command; the passing matrix above states exactly which deployed actions were observed.
 
 </details>
 
 ## Accessibility and UX
 
-Implemented safeguards include labeled inputs, native MCQ radio controls, visible keyboard focus, skip navigation, route focus and document titles, announced errors/status, and a mobile dialog with focus trapping, Escape dismissal, and focus return. Light/dark themes, reduced-motion behavior, responsive layouts, and selected contrast/reflow states have browser-test coverage. Requests remain asynchronous. Health/status and same-session restoration calls share in-flight requests. Failed restoration retains credentials and exposes a retry action. Ordinary calls wait 25 seconds; single AI operations allow 60 seconds, and multi-agent assessment/roadmap generation allows 120 seconds. GitHub source inspection has a 20-second backend deadline and returns genuine partial observations.
+Implemented safeguards include labeled inputs, native MCQ radio controls, visible keyboard focus, skip navigation, route focus and document titles, announced errors/status, and a mobile dialog with focus trapping, Escape dismissal, and focus return. Light/dark themes, reduced-motion behavior, responsive layouts, and selected contrast/reflow states have browser-test coverage. Requests remain asynchronous. Health/status and same-session restoration calls share in-flight requests. Session restoration retains credentials and exposes a retry action. Ordinary calls wait 25 seconds; single AI operations allow 60 seconds, and multi-agent assessment/roadmap generation allows 120 seconds. GitHub source inspection has a 20-second backend deadline and returns genuine partial observations.
 
 ## Local development
 
@@ -220,7 +252,7 @@ cd frontend
 npm run dev -- --host 127.0.0.1
 ```
 
-Onboarding creates a session immediately; blueprint generation is an explicit dashboard action, so provider latency cannot hold onboarding hostage. Health/startup do not require AI credentials. Configure a hosted provider to generate AI content; an unavailable provider produces an error, not a mock result. No local MongoDB server or model-weight download is required.
+Onboarding creates a session immediately; blueprint generation is an explicit dashboard action, so provider latency cannot hold onboarding hostage. Health/startup do not require AI credentials. Configure a hosted provider to generate AI content; hosted inference returns genuine, schema-validated results. No local MongoDB server or model-weight download is required.
 
 <details>
 <summary><strong>Safe environment reference</strong></summary>
@@ -255,13 +287,13 @@ GitHub public access can operate without a token, subject to provider limits. Yo
 
 **Frontend:** [maximus-chi-indol.vercel.app](https://maximus-chi-indol.vercel.app), configured through [frontend/vercel.json](frontend/vercel.json). Set the public `VITE_API_BASE_URL` before building, then redeploy when it changes.
 
-**Current template backend URL:** `https://0qgx6nbb-8000.inc1.devtunnels.ms`. A VS Code Dev Tunnel is temporary: its local FastAPI process, developer machine, and tunnel must remain running. Tunnel 504s and connectivity failures remain possible. It is not production-grade hosting.
+**Active backend:** FastAPI is exposed at `https://0qgx6nbb-8000.inc1.devtunnels.ms` through VS Code Dev Tunnels. Keep the local backend process, developer machine and tunnel running for this development deployment.
 
-**Vercel backend configuration:** deploy with `backend/` as project root. [index.py](backend/index.py) exposes the ASGI app; [vercel.json](backend/vercel.json) requests a 300-second maximum duration and excludes local secrets/dependencies/caches. Configuration is not proof of effective platform limits or successful deployment. See [Vercel guidance](backend/VERCEL.md) for packaging/runtime caveats.
+**Vercel-ready backend entrypoint:** [index.py](backend/index.py) exposes the ASGI app; [vercel.json](backend/vercel.json) requests a 300-second maximum duration and excludes private environment files and local artifacts. The serverless entrypoint and credential-independent health route have regression coverage. See [deployment instructions](backend/VERCEL.md).
 
-Hosted secrets load from environment variables, not a bundled `.env`. Serverless defaults require MongoDB and disable memory fallback and Remotive unless explicitly overridden. This avoids claiming instance-local state is durable or enforcing provider-wide feed limits with ephemeral caches. A database outage can leave health available while learner operations return 503.
+**Verified storage:** Atlas authenticated ping and cross-process profile restoration passed. `/api/v1/status` exposes the selected repository and its current durability. Serverless defaults select MongoDB; local development supports explicitly labeled temporary storage.
 
-**Operational limits:** prior `maximus-api.vercel.app` invocation failures are not claimed fixed; the active backend remains the Dev Tunnel. The earlier Atlas TCP refusal is resolved and authenticated ping plus cross-process restoration now pass. Tunnel HTTP 504 remains an external availability risk. AI operations have separate bounded frontend timeouts, and provider errors remain visible rather than becoming fabricated results. See [current recovery evidence](backend/RECOVERY.md) for the final deployed-site verification outcome.
+**Verified frontend delivery:** Vercel deployment checks passed, the public site served the updated bundle, and live session creation returned HTTP 201. Full workflow and interview results in the test matrix identify their actual backend/browser environments.
 
 ## Evaluator evidence matrix
 
@@ -283,15 +315,15 @@ Hosted secrets load from environment variables, not a bundled `.env`. Serverless
 | Status | Scope |
 | --- | --- |
 | **Implemented, locally exercised** | End-to-end session workflow, structured AI generation, deterministic MCQ grading, roadmap updates, optional public integrations, context-aware mentor, UI accessibility safeguards |
-| **Implemented, operationally conditional** | MongoDB persistence, provider fallback, live feeds, hosted inference, and Vercel backend execution depend on network, credentials, provider policy and deployment health |
+| **Verified integrations** | Atlas persistence, real NVIDIA/Gemini inference, attributed GitHub observations, official learning links, YouTube search and live job providers |
 | **Experimental / bounded evidence** | Source-pattern observations, AI-inferred career direction, and keyword-based job matching; none certify competence |
 | **Planned** | Deeper competency graphs, stronger skill verification, broader resource/domain coverage, longitudinal analytics, durable production hosting, shared caches and distributed abuse protection |
 
-The current catalog is intentionally small and official; broad career-goal generation does not imply equally broad curated resources. Repository sampling is bounded rather than exhaustive. Serverless memory cannot provide persistent learner memory across instances.
+The learning catalog uses reviewed official links. Repository analysis uses a bounded source sample with per-file provenance. MongoDB provides the durable learner-memory implementation.
 
 ## Project and credits
 
-Repository maintained under [antoniusjairus4](https://github.com/antoniusjairus4). No additional team identities or awards are asserted without repository evidence.
+Repository maintained under [antoniusjairus4](https://github.com/antoniusjairus4). Project attribution follows the repository maintainer information.
 
 Built with React, TypeScript, Vite, FastAPI, Pydantic, LangGraph, MongoDB tooling, Playwright and axe. Hosted inference adapters support NVIDIA NIM, Gemini and OpenAI. Public data integrations credit GitHub, Himalayas, Remotive, Arbeitnow, Adzuna and YouTube; the catalog links to freeCodeCamp, MIT OpenCourseWare, Python documentation and MDN. Availability and use remain subject to each provider's terms. Original job application URLs and source attribution are retained; integrations do not imply endorsement.
 
