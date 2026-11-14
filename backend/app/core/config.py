@@ -46,5 +46,6 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins(self) -> list[str]:
-        """FRONTEND_ORIGIN accepts one origin or a comma-separated list."""
-        return [origin.strip() for origin in self.frontend_origin.split(",") if origin.strip()]
+        """Allow the deployed frontend plus origins configured for development."""
+        configured = [origin.strip() for origin in self.frontend_origin.split(",") if origin.strip()]
+        return list(dict.fromkeys([*configured, "https://maximus-ch-indol.vercel.app"]))

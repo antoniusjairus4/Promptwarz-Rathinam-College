@@ -24,6 +24,14 @@ def test_configured_cors():
             "Origin": "https://untrusted.example",
             "Access-Control-Request-Method": "GET",
         })
+        deployed = client.options("/api/sessions", headers={
+            "Origin": "https://maximus-ch-indol.vercel.app",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "authorization,content-type",
+        })
     assert response.status_code == 200
     assert response.headers["access-control-allow-origin"] == "http://localhost:3000"
     assert "access-control-allow-origin" not in rejected.headers
+    assert deployed.status_code == 200
+    assert deployed.headers["access-control-allow-origin"] == "https://maximus-ch-indol.vercel.app"
+    assert deployed.headers["access-control-allow-credentials"] == "true"
