@@ -8,6 +8,7 @@ import {
   BookOpen,
   Briefcase,
   Bot,
+  Mic,
   PanelLeftClose,
   PanelLeftOpen,
   Sparkles,
@@ -28,6 +29,7 @@ export const navItems: NavItem[] = [
   { name: 'Career Navigator', href: '/career', icon: Compass },
   { name: 'Learning Hub', href: '/learning', icon: BookOpen },
   { name: 'Live Job Explorer', href: '/jobs', icon: Briefcase },
+  ...(!import.meta.env.PROD || import.meta.env.VITE_ENABLE_INTERVIEWS === 'true' ? [{ name: 'AI Mock Interview', href: '/interview', icon: Mic }] : []),
   { name: 'AI Mentor', href: '/mentor', icon: Bot },
 ];
 

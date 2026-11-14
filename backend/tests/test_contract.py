@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi.routing import APIRoute
 from app.core.config import Settings
 from app.main import create_app
-from app.api import workflow, integrations, journey
+from app.api import workflow, integrations, journey, interview
 
 
 def test_all_documented_operations_match_actual_models_and_export():
@@ -13,12 +13,12 @@ def test_all_documented_operations_match_actual_models_and_export():
     app = create_app(Settings(_env_file=None))
     routes = {
         (method, route.path): route
-        for route in [*app.routes, *workflow.router.routes, *integrations.router.routes, *journey.router.routes]
+        for route in [*app.routes, *workflow.router.routes, *integrations.router.routes, *journey.router.routes, *interview.router.routes]
         if isinstance(route, APIRoute) and route.path.startswith("/api/")
         for method in route.methods
     }
     examples = json.loads((contracts / "api_examples.json").read_text())["operations"]
-    assert len(routes) == 28
+    assert len(routes) == 33
     assert {(method.upper(), path) for path, methods in app.openapi()["paths"].items() for method in methods} == set(routes)
     assert {(item["method"], item["route"]) for item in examples} == set(routes)
     for item in examples:

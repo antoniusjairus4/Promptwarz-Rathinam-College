@@ -2025,6 +2025,361 @@
           }
         ]
       }
+    },
+    {
+      "method": "GET",
+      "route": "/api/interviews/current",
+      "request": {
+        "path": "/api/interviews/current",
+        "headers": {
+          "Authorization": "Bearer <your-session-token>"
+        },
+        "query": {
+          "session_id": "9aef0073-caf4-444a-9e64-e1c41969d3fd"
+        },
+        "json": null
+      },
+      "response_status": 200,
+      "response_json": {
+        "interview": null,
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Temporary process-local storage; lost on restart and not shared across serverless instances"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "route": "/api/interviews/start",
+      "request": {
+        "path": "/api/interviews/start",
+        "headers": {
+          "Authorization": "Bearer <your-session-token>"
+        },
+        "query": {},
+        "json": {
+          "session_id": "9aef0073-caf4-444a-9e64-e1c41969d3fd",
+          "interview_type": "mixed",
+          "difficulty": "intermediate"
+        }
+      },
+      "response_status": 200,
+      "response_json": {
+        "interview": {
+          "id": "b6f93ffc-856f-444c-afff-9eb4f7d13b4d",
+          "interview_type": "mixed",
+          "difficulty": "intermediate",
+          "created_at": "2026-11-14T09:35:24.380034+00:00",
+          "questions": [
+            {
+              "question": "Synthetic practice question 1: explain an HTTP design decision.",
+              "focus": "HTTP reasoning",
+              "id": "c2bd88c2-976b-42e3-883e-ef881857ca1f",
+              "number": 1,
+              "provider": "synthetic_test_provider",
+              "model": "synthetic_test_model"
+            }
+          ],
+          "answers": [],
+          "summary": null,
+          "evidence_note": "AI practice feedback only; not verified proficiency or a hiring prediction. Only approved text is sent; no raw audio is uploaded by Maximus."
+        },
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Temporary process-local storage; lost on restart and not shared across serverless instances"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "route": "/api/interviews/answer",
+      "request": {
+        "path": "/api/interviews/answer",
+        "headers": {
+          "Authorization": "Bearer <your-session-token>"
+        },
+        "query": {},
+        "json": {
+          "session_id": "9aef0073-caf4-444a-9e64-e1c41969d3fd",
+          "interview_id": "b6f93ffc-856f-444c-afff-9eb4f7d13b4d",
+          "question_id": "c2bd88c2-976b-42e3-883e-ef881857ca1f",
+          "transcript": "Synthetic documentation answer: I would explain design tradeoffs."
+        }
+      },
+      "response_status": 200,
+      "response_json": {
+        "interview": {
+          "id": "b6f93ffc-856f-444c-afff-9eb4f7d13b4d",
+          "interview_type": "mixed",
+          "difficulty": "intermediate",
+          "created_at": "2026-11-14T09:35:24.380034+00:00",
+          "questions": [
+            {
+              "question": "Synthetic practice question 1: explain an HTTP design decision.",
+              "focus": "HTTP reasoning",
+              "id": "c2bd88c2-976b-42e3-883e-ef881857ca1f",
+              "number": 1,
+              "provider": "synthetic_test_provider",
+              "model": "synthetic_test_model"
+            }
+          ],
+          "answers": [
+            {
+              "technical_accuracy": 6,
+              "clarity": 7,
+              "completeness": 5,
+              "relevance": 8,
+              "feedback": "Synthetic feedback for tests only",
+              "improvements": [
+                "Explain tradeoffs"
+              ],
+              "stronger_answer": "Hypothetically, I would compare the options and validate the tradeoff.",
+              "question_id": "c2bd88c2-976b-42e3-883e-ef881857ca1f",
+              "transcript": "Synthetic documentation answer: I would explain design tradeoffs.",
+              "provider": "synthetic_test_provider",
+              "model": "synthetic_test_model"
+            }
+          ],
+          "summary": null,
+          "evidence_note": "AI practice feedback only; not verified proficiency or a hiring prediction. Only approved text is sent; no raw audio is uploaded by Maximus."
+        },
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Temporary process-local storage; lost on restart and not shared across serverless instances"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "route": "/api/interviews/next",
+      "request": {
+        "path": "/api/interviews/next",
+        "headers": {
+          "Authorization": "Bearer <your-session-token>"
+        },
+        "query": {},
+        "json": {
+          "session_id": "9aef0073-caf4-444a-9e64-e1c41969d3fd",
+          "interview_id": "b6f93ffc-856f-444c-afff-9eb4f7d13b4d"
+        }
+      },
+      "response_status": 200,
+      "response_json": {
+        "interview": {
+          "id": "b6f93ffc-856f-444c-afff-9eb4f7d13b4d",
+          "interview_type": "mixed",
+          "difficulty": "intermediate",
+          "created_at": "2026-11-14T09:35:24.380034+00:00",
+          "questions": [
+            {
+              "question": "Synthetic practice question 1: explain an HTTP design decision.",
+              "focus": "HTTP reasoning",
+              "id": "c2bd88c2-976b-42e3-883e-ef881857ca1f",
+              "number": 1,
+              "provider": "synthetic_test_provider",
+              "model": "synthetic_test_model"
+            },
+            {
+              "question": "Synthetic practice question 2: explain an HTTP design decision.",
+              "focus": "HTTP reasoning",
+              "id": "02ac85a2-05a9-4db9-9b88-e742dc149674",
+              "number": 2,
+              "provider": "synthetic_test_provider",
+              "model": "synthetic_test_model"
+            }
+          ],
+          "answers": [
+            {
+              "technical_accuracy": 6,
+              "clarity": 7,
+              "completeness": 5,
+              "relevance": 8,
+              "feedback": "Synthetic feedback for tests only",
+              "improvements": [
+                "Explain tradeoffs"
+              ],
+              "stronger_answer": "Hypothetically, I would compare the options and validate the tradeoff.",
+              "question_id": "c2bd88c2-976b-42e3-883e-ef881857ca1f",
+              "transcript": "Synthetic documentation answer: I would explain design tradeoffs.",
+              "provider": "synthetic_test_provider",
+              "model": "synthetic_test_model"
+            }
+          ],
+          "summary": null,
+          "evidence_note": "AI practice feedback only; not verified proficiency or a hiring prediction. Only approved text is sent; no raw audio is uploaded by Maximus."
+        },
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Temporary process-local storage; lost on restart and not shared across serverless instances"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "route": "/api/interviews/summary",
+      "request": {
+        "path": "/api/interviews/summary",
+        "headers": {
+          "Authorization": "Bearer <your-session-token>"
+        },
+        "query": {},
+        "json": {
+          "session_id": "9aef0073-caf4-444a-9e64-e1c41969d3fd",
+          "interview_id": "b6f93ffc-856f-444c-afff-9eb4f7d13b4d"
+        }
+      },
+      "response_status": 200,
+      "response_json": {
+        "interview": {
+          "id": "b6f93ffc-856f-444c-afff-9eb4f7d13b4d",
+          "interview_type": "mixed",
+          "difficulty": "intermediate",
+          "created_at": "2026-11-14T09:35:24.380034+00:00",
+          "questions": [
+            {
+              "question": "Synthetic practice question 1: explain an HTTP design decision.",
+              "focus": "HTTP reasoning",
+              "id": "c2bd88c2-976b-42e3-883e-ef881857ca1f",
+              "number": 1,
+              "provider": "synthetic_test_provider",
+              "model": "synthetic_test_model"
+            },
+            {
+              "question": "Synthetic practice question 2: explain an HTTP design decision.",
+              "focus": "HTTP reasoning",
+              "id": "02ac85a2-05a9-4db9-9b88-e742dc149674",
+              "number": 2,
+              "provider": "synthetic_test_provider",
+              "model": "synthetic_test_model"
+            },
+            {
+              "question": "Synthetic practice question 3: explain an HTTP design decision.",
+              "focus": "HTTP reasoning",
+              "id": "f35a76e9-02f9-4787-becf-d3e212abcfa6",
+              "number": 3,
+              "provider": "synthetic_test_provider",
+              "model": "synthetic_test_model"
+            },
+            {
+              "question": "Synthetic practice question 4: explain an HTTP design decision.",
+              "focus": "HTTP reasoning",
+              "id": "3eec89a6-785b-48b0-b634-783b8a165d5f",
+              "number": 4,
+              "provider": "synthetic_test_provider",
+              "model": "synthetic_test_model"
+            },
+            {
+              "question": "Synthetic practice question 5: explain an HTTP design decision.",
+              "focus": "HTTP reasoning",
+              "id": "2affd30e-32ba-4eb8-a573-a88fa73ca591",
+              "number": 5,
+              "provider": "synthetic_test_provider",
+              "model": "synthetic_test_model"
+            }
+          ],
+          "answers": [
+            {
+              "technical_accuracy": 6,
+              "clarity": 7,
+              "completeness": 5,
+              "relevance": 8,
+              "feedback": "Synthetic feedback for tests only",
+              "improvements": [
+                "Explain tradeoffs"
+              ],
+              "stronger_answer": "Hypothetically, I would compare the options and validate the tradeoff.",
+              "question_id": "c2bd88c2-976b-42e3-883e-ef881857ca1f",
+              "transcript": "Synthetic documentation answer: I would explain design tradeoffs.",
+              "provider": "synthetic_test_provider",
+              "model": "synthetic_test_model"
+            },
+            {
+              "technical_accuracy": 6,
+              "clarity": 7,
+              "completeness": 5,
+              "relevance": 8,
+              "feedback": "Synthetic feedback for tests only",
+              "improvements": [
+                "Explain tradeoffs"
+              ],
+              "stronger_answer": "Hypothetically, I would compare the options and validate the tradeoff.",
+              "question_id": "02ac85a2-05a9-4db9-9b88-e742dc149674",
+              "transcript": "Synthetic documentation answer: I would explain design tradeoffs.",
+              "provider": "synthetic_test_provider",
+              "model": "synthetic_test_model"
+            },
+            {
+              "technical_accuracy": 6,
+              "clarity": 7,
+              "completeness": 5,
+              "relevance": 8,
+              "feedback": "Synthetic feedback for tests only",
+              "improvements": [
+                "Explain tradeoffs"
+              ],
+              "stronger_answer": "Hypothetically, I would compare the options and validate the tradeoff.",
+              "question_id": "f35a76e9-02f9-4787-becf-d3e212abcfa6",
+              "transcript": "Synthetic documentation answer: I would explain design tradeoffs.",
+              "provider": "synthetic_test_provider",
+              "model": "synthetic_test_model"
+            },
+            {
+              "technical_accuracy": 6,
+              "clarity": 7,
+              "completeness": 5,
+              "relevance": 8,
+              "feedback": "Synthetic feedback for tests only",
+              "improvements": [
+                "Explain tradeoffs"
+              ],
+              "stronger_answer": "Hypothetically, I would compare the options and validate the tradeoff.",
+              "question_id": "3eec89a6-785b-48b0-b634-783b8a165d5f",
+              "transcript": "Synthetic documentation answer: I would explain design tradeoffs.",
+              "provider": "synthetic_test_provider",
+              "model": "synthetic_test_model"
+            },
+            {
+              "technical_accuracy": 6,
+              "clarity": 7,
+              "completeness": 5,
+              "relevance": 8,
+              "feedback": "Synthetic feedback for tests only",
+              "improvements": [
+                "Explain tradeoffs"
+              ],
+              "stronger_answer": "Hypothetically, I would compare the options and validate the tradeoff.",
+              "question_id": "2affd30e-32ba-4eb8-a573-a88fa73ca591",
+              "transcript": "Synthetic documentation answer: I would explain design tradeoffs.",
+              "provider": "synthetic_test_provider",
+              "model": "synthetic_test_model"
+            }
+          ],
+          "summary": {
+            "summary": "Synthetic five-answer summary",
+            "strengths": [
+              "Clarity"
+            ],
+            "improvement_areas": [
+              "Depth"
+            ],
+            "next_steps": [
+              "Practice HTTP tradeoffs"
+            ],
+            "provider": "synthetic_test_provider",
+            "model": "synthetic_test_model"
+          },
+          "evidence_note": "AI practice feedback only; not verified proficiency or a hiring prediction. Only approved text is sent; no raw audio is uploaded by Maximus."
+        },
+        "storage": {
+          "mode": "memory",
+          "durable": false,
+          "reason": "Temporary process-local storage; lost on restart and not shared across serverless instances"
+        }
+      }
     }
   ]
 }

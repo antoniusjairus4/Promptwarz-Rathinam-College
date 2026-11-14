@@ -12,6 +12,8 @@ const LearningHubPage = lazy(() => import('@/pages/LearningHubPage').then(module
 const LiveJobExplorerPage = lazy(() => import('@/pages/LiveJobExplorerPage').then(module => ({ default: module.LiveJobExplorerPage })));
 const AiMentorPage = lazy(() => import('@/pages/AiMentorPage').then(module => ({ default: module.AiMentorPage })));
 
+const MockInterviewPage = lazy(() => import('@/pages/MockInterviewPage').then(module => ({ default: module.MockInterviewPage })));
+
 export const App: React.FC = () => {
   return (
     <ThemeProvider>
@@ -28,6 +30,7 @@ export const App: React.FC = () => {
               <Route path="/career" element={<CareerNavigatorPage />} />
               <Route path="/learning" element={<LearningHubPage />} />
               <Route path="/jobs" element={<LiveJobExplorerPage />} />
+              <Route path="/interview" element={!import.meta.env.PROD || import.meta.env.VITE_ENABLE_INTERVIEWS === 'true' ? <MockInterviewPage /> : <Navigate to="/dashboard" replace />} />
               <Route path="/mentor" element={<AiMentorPage />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Route>

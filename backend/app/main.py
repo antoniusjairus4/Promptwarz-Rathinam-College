@@ -18,6 +18,7 @@ from app.db.repository import Conflict, Repository, StorageUnavailable, build_re
 from app.services.inference import Generator, HostedGenerator, InferenceUnavailable, inference_deadline
 from app.services.journey import JourneyService
 from app.api.journey import router as journey_router
+from app.api.interview import router as interview_router
 
 
 class HealthResponse(BaseModel):
@@ -78,6 +79,7 @@ def create_app(settings: Settings | None = None, repository: Repository | None =
     application.include_router(router)
     application.include_router(integrations_router)
     application.include_router(journey_router)
+    application.include_router(interview_router)
     return application
 
 

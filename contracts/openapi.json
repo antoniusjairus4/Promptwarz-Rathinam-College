@@ -1440,6 +1440,239 @@
           }
         }
       }
+    },
+    "/api/interviews/current": {
+      "get": {
+        "tags": [
+          "interview practice"
+        ],
+        "summary": "Current",
+        "operationId": "current_api_interviews_current_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/interviews/start": {
+      "post": {
+        "tags": [
+          "interview practice"
+        ],
+        "summary": "Start",
+        "operationId": "start_api_interviews_start_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InterviewStart"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/interviews/answer": {
+      "post": {
+        "tags": [
+          "interview practice"
+        ],
+        "summary": "Answer",
+        "operationId": "answer_api_interviews_answer_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InterviewAnswer"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/interviews/next": {
+      "post": {
+        "tags": [
+          "interview practice"
+        ],
+        "summary": "Next Question",
+        "operationId": "next_question_api_interviews_next_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InterviewAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/interviews/summary": {
+      "post": {
+        "tags": [
+          "interview practice"
+        ],
+        "summary": "Summary",
+        "operationId": "summary_api_interviews_summary_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InterviewAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -1939,6 +2172,385 @@
         },
         "type": "object",
         "title": "HealthResponse"
+      },
+      "Interview": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "interview_type": {
+            "type": "string",
+            "enum": [
+              "technical",
+              "behavioral",
+              "mixed"
+            ],
+            "title": "Interview Type"
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": [
+              "beginner",
+              "intermediate",
+              "advanced"
+            ],
+            "title": "Difficulty"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/InterviewQuestion"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Questions"
+          },
+          "answers": {
+            "items": {
+              "$ref": "#/components/schemas/InterviewFeedback"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Answers"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InterviewSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "evidence_note": {
+            "type": "string",
+            "title": "Evidence Note",
+            "default": "AI practice feedback only; not verified proficiency or a hiring prediction. Only approved text is sent; no raw audio is uploaded by Maximus."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "interview_type",
+          "difficulty",
+          "created_at",
+          "questions"
+        ],
+        "title": "Interview"
+      },
+      "InterviewAction": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Session Id"
+          },
+          "interview_id": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Interview Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "interview_id"
+        ],
+        "title": "InterviewAction"
+      },
+      "InterviewAnswer": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Session Id"
+          },
+          "interview_id": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Interview Id"
+          },
+          "question_id": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Question Id"
+          },
+          "transcript": {
+            "type": "string",
+            "maxLength": 6000,
+            "minLength": 1,
+            "title": "Transcript"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "interview_id",
+          "question_id",
+          "transcript"
+        ],
+        "title": "InterviewAnswer"
+      },
+      "InterviewFeedback": {
+        "properties": {
+          "technical_accuracy": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Technical Accuracy"
+          },
+          "clarity": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Clarity"
+          },
+          "completeness": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Completeness"
+          },
+          "relevance": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Relevance"
+          },
+          "feedback": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Feedback"
+          },
+          "improvements": {
+            "items": {
+              "type": "string",
+              "maxLength": 160,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Improvements"
+          },
+          "stronger_answer": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Stronger Answer"
+          },
+          "question_id": {
+            "type": "string",
+            "title": "Question Id"
+          },
+          "transcript": {
+            "type": "string",
+            "title": "Transcript"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "technical_accuracy",
+          "clarity",
+          "completeness",
+          "relevance",
+          "feedback",
+          "improvements",
+          "stronger_answer",
+          "question_id",
+          "transcript",
+          "provider",
+          "model"
+        ],
+        "title": "InterviewFeedback"
+      },
+      "InterviewQuestion": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Question"
+          },
+          "focus": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Focus"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "number": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Number"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "question",
+          "focus",
+          "id",
+          "number",
+          "provider",
+          "model"
+        ],
+        "title": "InterviewQuestion"
+      },
+      "InterviewResponse": {
+        "properties": {
+          "interview": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Interview"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "storage": {
+            "$ref": "#/components/schemas/StorageStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "interview",
+          "storage"
+        ],
+        "title": "InterviewResponse"
+      },
+      "InterviewStart": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Session Id"
+          },
+          "interview_type": {
+            "type": "string",
+            "enum": [
+              "technical",
+              "behavioral",
+              "mixed"
+            ],
+            "title": "Interview Type",
+            "default": "mixed"
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": [
+              "beginner",
+              "intermediate",
+              "advanced"
+            ],
+            "title": "Difficulty",
+            "default": "intermediate"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id"
+        ],
+        "title": "InterviewStart"
+      },
+      "InterviewSummary": {
+        "properties": {
+          "summary": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Summary"
+          },
+          "strengths": {
+            "items": {
+              "type": "string",
+              "maxLength": 160,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Strengths"
+          },
+          "improvement_areas": {
+            "items": {
+              "type": "string",
+              "maxLength": 160,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Improvement Areas"
+          },
+          "next_steps": {
+            "items": {
+              "type": "string",
+              "maxLength": 160,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Next Steps"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "summary",
+          "strengths",
+          "improvement_areas",
+          "next_steps",
+          "provider",
+          "model"
+        ],
+        "title": "InterviewSummary"
       },
       "JobListing": {
         "properties": {

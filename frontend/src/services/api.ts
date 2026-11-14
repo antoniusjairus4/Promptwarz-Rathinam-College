@@ -1,3 +1,4 @@
+import type { InterviewResponse, InterviewType, InterviewDifficulty } from '../types/interview';
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
 import type {
   HealthCheckResponse,
@@ -91,7 +92,7 @@ apiClient.interceptors.response.use(
       friendlyMessage = data.message;
     } else if (error.code === 'ECONNABORTED') {
       friendlyMessage =
-        'The request timed out after 25 seconds. Please retry. AI generation may still finish on the backend; refresh to restore session state.';
+        `The request timed out after ${Math.round((error.config?.timeout || 25000) / 1000)} seconds. Please retry. AI generation may still finish on the backend; refresh to restore session state.`;
     } else if (error.message) {
       friendlyMessage = error.message;
     }
@@ -109,6 +110,15 @@ let healthRequest: Promise<HealthCheckResponse> | null = null;
 let statusRequest: Promise<SystemStatusResponse> | null = null;
 
 export const api = {
+  getInterview(sessionId: string, signal?: AbortSignal): Promise<InterviewResponse> {
+    return request({method: 'GET', url: '/api/interviews/current', params: {session_id: sessionId}, signal});
+  },
+  startInterview(sessionId: string, interviewType: InterviewType, difficulty: InterviewDifficulty, signal?: AbortSignal): Promise<InterviewResponse> {
+    return request({method: 'POST', url: '/api/interviews/start', timeout: 60000, data: {session_id: sessionId, interview_type: interviewType, difficulty}, signal});
+  },
+  interviewAction(action: 'answer' | 'next' | 'summary', sessionId: string, interviewId: string, answer?: {question_id: string; transcript: string}, signal?: AbortSignal): Promise<InterviewResponse> {
+    return request({method: 'POST', url: `/api/interviews/${action}`, timeout: 60000, data: {session_id: sessionId, interview_id: interviewId, ...answer}, signal});
+  },
   /**
    * Health check endpoint: GET /api/health
    */

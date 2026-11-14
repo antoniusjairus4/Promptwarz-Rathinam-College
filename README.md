@@ -127,7 +127,9 @@ flowchart TB
 
 ## API documentation
 
-The checked-in [OpenAPI contract](contracts/openapi.json) contains **28 operations**, spanning session facade routes and preserved `/api/v1` routes. Actual route modules: [journey](backend/app/api/journey.py), [workflow](backend/app/api/workflow.py), and [integrations](backend/app/api/integrations.py). Health is defined in [main.py](backend/app/main.py).
+The production-disabled AI Mock Interview preview adds five-question technical, behavioral, or mixed practice with browser voice input, editable text fallback, structured AI feedback, and session-backed results. See the [additive interview contract](contracts/INTERVIEW_HANDOFF.md). Ratings are practice feedback, not verified competence.
+
+The checked-in [OpenAPI contract](contracts/openapi.json) contains **33 operations**, spanning session facade routes and preserved `/api/v1` routes. Actual route modules: [journey](backend/app/api/journey.py), [workflow](backend/app/api/workflow.py), and [integrations](backend/app/api/integrations.py). Health is defined in [main.py](backend/app/main.py).
 
 | API group | Key endpoints |
 | --- | --- |
