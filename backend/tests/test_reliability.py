@@ -240,7 +240,11 @@ def test_failed_mongo_save_never_creates_memory_replacement():
     collection.failed = True
     with pytest.raises(StorageUnavailable):
         repo.save(document, 0)
-    assert repo.status.mode == "mongodb"
+    assert repo.status.mode == "unavailable"
+    assert repo.status.durable is False
+    collection.failed = False
+    assert repo.get("one")["value"] == "real test value"
+    assert repo.status.mode == "mongodb" and repo.status.durable is True
 
 
 def test_quiz_gaps_precede_unassessed_skills_without_fake_scores(client):

@@ -62,16 +62,35 @@ class MongoRepository:
         self.client = client
         self.collection = client[database]["learners"]
 
+    def _healthy(self):
+        self.status = StorageStatus(mode="mongodb", durable=True)
+
+    def _unavailable(self, exc):
+        self.status = StorageStatus(mode="unavailable", durable=False, reason=f"MongoDB operation failed ({type(exc).__name__}); existing database data was not replaced")
+
+    def check_health(self):
+        try:
+            self.client.admin.command("ping")
+            self._healthy()
+        except PyMongoError as exc:
+            self._unavailable(exc)
+        return self.status
+
     def get(self, learner_id):
         try:
-            return self.collection.find_one({"_id": learner_id})
-        except PyMongoError:
+            document = self.collection.find_one({"_id": learner_id})
+            self._healthy()
+            return document
+        except PyMongoError as exc:
+            self._unavailable(exc)
             raise StorageUnavailable() from None
 
     def create(self, document):
         try:
             self.collection.insert_one(deepcopy(document))
-        except PyMongoError:
+            self._healthy()
+        except PyMongoError as exc:
+            self._unavailable(exc)
             raise StorageUnavailable() from None
 
     def save(self, document, expected_version):
@@ -81,8 +100,10 @@ class MongoRepository:
             result = self.collection.replace_one(
                 {"_id": document["_id"], "version": expected_version}, document
             )
-        except PyMongoError:
+        except PyMongoError as exc:
+            self._unavailable(exc)
             raise StorageUnavailable() from None
+        self._healthy()
         if result.matched_count != 1:
             raise Conflict()
 

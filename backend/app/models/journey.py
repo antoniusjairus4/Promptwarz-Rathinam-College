@@ -6,7 +6,7 @@ from app.models.workflow import (
     AgentEvent, Assessment, AssessmentResult, Learner, LongText, OnboardingRequest,
     Roadmap, StorageStatus, StrictModel, Submission, Text,
 )
-from app.models.integrations import JobsResponse, LearningResponse, ProviderStatus, RepositoryMetadata
+from app.models.integrations import JobsResponse, LearningResponse, ProviderStatus, RepositoryMetadata, SourceFile
 
 
 class SessionCreate(OnboardingRequest):
@@ -73,10 +73,12 @@ class RepositoryInspection(BaseModel):
     inspected_paths: list[str]
     architecture_paths: list[str]
     findings: list[SourceFinding]
+    files: list[SourceFile] = Field(default_factory=list, max_length=6)
     limitations: list[str]
 
 
 class GithubRequest(SessionAction):
+    paths: list[Text] = Field(default_factory=list, max_length=3)
     target: Annotated[str, Field(min_length=1, max_length=250)]
 
 

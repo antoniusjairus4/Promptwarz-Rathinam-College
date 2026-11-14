@@ -33,7 +33,8 @@ Token = Annotated[str, Depends(token)]
 
 @router.get("/status", response_model=StorageStatus)
 def status(svc: Service):
-    return svc.repository.status
+    check = getattr(svc.repository, "check_health", None)
+    return check() if check is not None else svc.repository.status
 
 
 @router.post("/onboarding", response_model=OnboardingResponse, status_code=201)

@@ -2133,6 +2133,16 @@
             "minLength": 1,
             "title": "Session Id"
           },
+          "paths": {
+            "items": {
+              "type": "string",
+              "maxLength": 160,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 3,
+            "title": "Paths"
+          },
           "target": {
             "type": "string",
             "maxLength": 250,
@@ -3445,6 +3455,14 @@
             },
             "type": "array",
             "title": "Findings"
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/SourceFile"
+            },
+            "type": "array",
+            "maxItems": 6,
+            "title": "Files"
           },
           "limitations": {
             "items": {

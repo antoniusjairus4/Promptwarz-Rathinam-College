@@ -54,10 +54,38 @@ def profile(body: SessionAction, svc: Service, credential: Token):
 @router.post("/github/analyze", response_model=GithubAnalysisResponse)
 async def github(body: GithubRequest, request: Request, svc: Service, credential: Token):
     document = await run_in_threadpool(svc.document, body.session_id, credential)
-    result = await GithubInspector(request.app.state.external).inspect(body.target, document["events"])
+    result = await GithubInspector(request.app.state.external).inspect(body.target, document["events"], body.paths)
     if result["repositories"]:
-        document["github_repositories"] = [repository.model_dump() for repository in result["repositories"]]
-        document["profile_analysis"] = None
+        # A partial refresh must not erase previously saved evidence or other repositories.
+        saved = {r["repository"]["full_name"].casefold(): r for r in document.get("github_repositories", [])}
+        for repository in result["repositories"]:
+            key = repository.repository.full_name.casefold()
+            previous = saved.get(key)
+            if previous and not repository.inspected_paths:
+                continue
+            if previous:
+                files = {file["path"]: file for file in previous.get("files", [])}
+                for file in repository.files:
+                    if file.status == "ok" or file.path not in files:
+                        files[file.path] = file.model_dump()
+                kept = list(files.values())[-6:]
+                paths = set([*previous.get("inspected_paths", []), *[file["path"] for file in kept if file["status"] == "ok"]][-6:])
+                updated = set(repository.inspected_paths)
+                findings = [finding for finding in previous.get("findings", []) if finding["file_path"] not in updated]
+                findings.extend(finding.model_dump() for finding in repository.findings)
+                merged = repository.model_dump()
+                merged["files"] = kept
+                merged["inspected_paths"] = sorted(paths)
+                merged["findings"] = [finding for finding in findings if finding["file_path"] in paths][-40:]
+                merged["limitations"] = list(dict.fromkeys([*repository.limitations, "Retained observations may span imports; each source file has its own provenance SHA"]))
+                saved[key] = merged
+            else:
+                saved[key] = repository.model_dump()
+        document["github_repositories"] = list(saved.values())[-4:]
+        if any(repository.inspected_paths for repository in result["repositories"]):
+            document["profile_analysis"] = None
+        # Return exactly the evidence that was retained in the learner document.
+        result["repositories"] = [saved[repository.repository.full_name.casefold()] for repository in result["repositories"]]
     # A failed refresh does not erase previous genuine findings.
     await run_in_threadpool(svc._save, document)
     return GithubAnalysisResponse(session_id=body.session_id, repositories=result["repositories"], providers=result["providers"], storage=svc.repository.status)

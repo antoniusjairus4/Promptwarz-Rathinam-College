@@ -95,54 +95,82 @@ class GithubInspector:
     def __init__(self, external: ExternalServices):
         self.external = external
 
-    async def inspect(self, target, events):
+    async def inspect(self, target, events, requested_paths=None):
         owner, repo = parse_target(target)
+        requested_paths = list(dict.fromkeys(requested_paths or []))
+        if any(not eligible(path) for path in requested_paths):
+            raise HTTPException(422, "Selected paths must be bounded public source files; secrets and traversal are forbidden")
         result = {"repositories": [], "providers": []}
         operation_id = new_id()
+
+        async def inspect_repository(repo_owner, repo_name):
+            metadata = await self.external.github(repo_owner, repo_name, [])
+            result["providers"].extend(metadata.providers)
+            if not metadata.repository:
+                return
+            inspection = RepositoryInspection(repository=metadata.repository, tree_sha=None,
+                inspected_paths=[], architecture_paths=[], findings=[], files=[],
+                limitations=["Inspection is a bounded sample; repository ownership and test execution are not verified"])
+            # Keep genuine metadata even if later tree/file requests time out.
+            result["repositories"].append(inspection)
+            base = "https://api.github.com/repos/" + quote(repo_owner, safe="") + "/" + quote(repo_name, safe="")
+            tree, status = await self.external.fetch("github", ("tree-root", repo_owner, repo_name, metadata.repository.default_branch),
+                base + "/git/trees/" + quote(metadata.repository.default_branch, safe=""), headers=self.external.github_headers(), ttl=1800)
+            result["providers"].append(status)
+            entries = (tree or {}).get("tree", [])[:4000]
+            inspection.tree_sha = (tree or {}).get("sha")
+            if tree is None or (tree or {}).get("truncated"):
+                inspection.limitations.append("Tree enumeration unavailable or truncated")
+            # Inspect at most two shallow source/test directories, never a recursive full tree.
+            directories = [row for row in entries if row.get("type") == "tree" and row.get("path") in {"src", "app", "lib", "tests"}][:2]
+            async def directory(row):
+                child, child_status = await self.external.fetch("github", ("tree-child", repo_owner, repo_name, row["sha"]),
+                    base + "/git/trees/" + quote(row["sha"], safe=""), headers=self.external.github_headers(), ttl=1800)
+                result["providers"].append(child_status)
+                return [{**entry, "path": row["path"] + "/" + entry.get("path", "")} for entry in (child or {}).get("tree", [])[:1000]]
+            for child in await asyncio.gather(*(directory(row) for row in directories)):
+                entries.extend(child)
+            selected, candidates = select_paths(entries)
+            inspection.architecture_paths = candidates[:100]
+            paths = list(dict.fromkeys([*requested_paths, *selected]))[:4]
+            async def read(path):
+                content = await self.external.github(repo_owner, repo_name, [path])
+                result["providers"].extend(content.providers)
+                for file in content.files:
+                    inspection.files.append(file)
+                    if file.status == "ok":
+                        inspection.inspected_paths.append(file.path)
+                        inspection.findings.extend(findings_for(file))
+                    else:
+                        inspection.limitations.append(f"Selected file unavailable: {file.path}")
+                inspection.findings = inspection.findings[:40]
+            await asyncio.gather(*(read(path) for path in paths))
+
         async def action(state):
-            def event(status):
-                events.append(AgentEvent(id=new_id(), agent="Skill Detective", status=status, timestamp=now(), operation_id=operation_id).model_dump())
-            event("started")
-            try:
-                targets = [(owner, repo)] if repo else []
-                if not repo:
-                    data, status = await self.external.fetch("github", ("user", owner), "https://api.github.com/users/" + quote(owner, safe="") + "/repos", params={"per_page": 3, "sort": "updated", "type": "owner"}, headers=self.external.github_headers(), ttl=1800)
-                    result["providers"].append(status)
-                    for row in (data or {}).get("items", [])[:3]:
-                        if row.get("private") is False and not row.get("fork"):
-                            targets.append((row["owner"]["login"], row["name"]))
-                    targets = targets[:2]
-                for repo_owner, repo_name in targets:
-                    metadata = await self.external.github(repo_owner, repo_name, [])
-                    result["providers"].extend(metadata.providers)
-                    if not metadata.repository:
-                        continue
-                    base = "https://api.github.com/repos/" + quote(repo_owner, safe="") + "/" + quote(repo_name, safe="")
-                    tree, status = await self.external.fetch("github", ("tree", repo_owner, repo_name, metadata.repository.default_branch), base + "/git/trees/" + quote(metadata.repository.default_branch, safe=""), params={"recursive": "1"}, headers=self.external.github_headers(), ttl=1800)
-                    result["providers"].append(status)
-                    paths, candidates = select_paths((tree or {}).get("tree", []))
-                    content = await self.external.github(repo_owner, repo_name, paths) if paths else metadata
-                    result["providers"].extend(content.providers if paths else [])
-                    limitations = ["Inspection is a bounded sample; repository ownership and test execution are not verified"]
-                    if tree is None or (tree or {}).get("truncated"):
-                        limitations.append("Tree enumeration unavailable or truncated")
-                    if any(file.status != "ok" for file in content.files):
-                        limitations.append("Some selected files were unavailable or exceeded size limits")
-                    result["repositories"].append(RepositoryInspection(repository=metadata.repository, tree_sha=(tree or {}).get("sha"), inspected_paths=[file.path for file in content.files if file.status == "ok"], architecture_paths=candidates[:100], findings=[finding for file in content.files for finding in findings_for(file)][:40], limitations=limitations))
-                event("completed" if any(repo.inspected_paths for repo in result["repositories"]) else "failed")
-            except (TimeoutError, ValueError, KeyError, TypeError):
-                result["providers"].append(ProviderStatus(provider="github", status="error", detail="Bounded source inspection failed or timed out"))
-                event("failed")
+            events.append(AgentEvent(id=new_id(), agent="Skill Detective", status="started", timestamp=now(), operation_id=operation_id).model_dump())
+            targets = [(owner, repo)] if repo else []
+            if not repo:
+                data, status = await self.external.fetch("github", ("user", owner), "https://api.github.com/users/" + quote(owner, safe="") + "/repos",
+                    params={"per_page": 10, "page": 1, "sort": "updated", "type": "owner"}, headers=self.external.github_headers(), ttl=1800)
+                result["providers"].append(status)
+                targets = [(row["owner"]["login"], row["name"]) for row in (data or {}).get("items", [])[:10]
+                    if row.get("private") is False and not row.get("fork")][:2]
+            outcomes = await asyncio.gather(*(inspect_repository(o, r) for o, r in targets), return_exceptions=True)
+            if any(isinstance(outcome, Exception) for outcome in outcomes):
+                result["providers"].append(ProviderStatus(provider="github", status="error", detail="Some repositories could not be inspected; available observations were retained"))
+            events.append(AgentEvent(id=new_id(), agent="Skill Detective", status="completed" if any(r.inspected_paths for r in result["repositories"]) else "failed", timestamp=now(), operation_id=operation_id).model_dump())
             return state
+
         graph = StateGraph(dict)
         graph.add_node("Skill Detective", action)
         graph.add_edge(START, "Skill Detective")
         graph.add_edge("Skill Detective", END)
         try:
-            async with asyncio.timeout(100):
+            async with asyncio.timeout(20):
                 await graph.compile().ainvoke({})
-        except TimeoutError:
-            # A timed-out operation must never be shown as completed.
+        except (TimeoutError, ValueError, KeyError, TypeError):
             events.append(AgentEvent(id=new_id(), agent="Skill Detective", status="failed", timestamp=now(), operation_id=operation_id).model_dump())
-            result["providers"].append(ProviderStatus(provider="github", status="error", detail="Source inspection reached its total deadline"))
+            result["providers"].append(ProviderStatus(provider="github", status="error", detail="20-second inspection deadline reached; available metadata and source observations were retained"))
+            for inspection in result["repositories"]:
+                inspection.limitations.append("Inspection incomplete: retry to use cached results and complete the sample")
         return result

@@ -1,4 +1,5 @@
 """Bounded, cached backend HTTP. No provider is required by the AI workflow."""
+from contextlib import asynccontextmanager
 import asyncio
 import base64
 from copy import deepcopy
@@ -62,6 +63,8 @@ class ExternalServices:
         self.client = client or httpx.AsyncClient(timeout=httpx.Timeout(settings.external_timeout_seconds), follow_redirects=False, headers={"User-Agent": "Maximus/0.3 (+https://github.com/antoniusjairus4/Promptwarz-Rathinam-College)", "Accept": "application/json"}, limits=httpx.Limits(max_connections=8))
         self.cache = {}
         self.locks = {name: asyncio.Lock() for name in ["himalayas", "remotive", "github", "youtube", "arbeitnow", "adzuna"]}
+        self.github_slots = asyncio.Semaphore(3)
+        self.github_keys = {}
         self.cooldowns = {}
         self.next_request = {}
         self._load_remotive()
@@ -111,11 +114,28 @@ class ExternalServices:
         except (ValueError, UnicodeError):
             raise ProviderFailure("Invalid provider JSON") from None
 
+    @asynccontextmanager
+    async def _fetch_lock(self, provider, key):
+        if provider != "github":
+            async with self.locks[provider]:
+                yield
+            return
+        # Same-key callers share the cache; distinct GETs use at most three sockets.
+        async with self.github_slots:
+            lock = self.github_keys.setdefault(key, asyncio.Lock())
+            async with lock:
+                yield
+            if len(self.github_keys) > 256:
+                for old_key, old_lock in list(self.github_keys.items()):
+                    if old_key != key and not old_lock.locked():
+                        del self.github_keys[old_key]
+                        break
+
     async def fetch(self, provider, key, url, *, params=None, headers=None, ttl=900, max_bytes=4_000_000):
         enabled = getattr(self.settings, f"{provider}_enabled")
         if not enabled:
             return None, ProviderStatus(provider=provider, status="disabled")
-        async with self.locks[provider]:
+        async with self._fetch_lock(provider, key):
             cached = self.cache.get((provider, key))
             if cached and cached[0] > time.time():
                 return deepcopy(cached[1]), ProviderStatus(provider=provider, status="ok", cached=True, fetched_at=cached[2])
@@ -125,10 +145,20 @@ class ExternalServices:
                 status.retry_after_seconds = max(1, int(cooldown[0] - time.time()))
                 return None, status
             # Space cold requests per provider; cached reads never consume network quota.
-            remaining = self.next_request.get(provider, 0) - time.monotonic()
-            if remaining > 0:
-                await asyncio.sleep(remaining)
-            self.next_request[provider] = time.monotonic() + (2 if provider == "himalayas" else 1)
+            async def pace():
+                remaining = self.next_request.get(provider, 0) - time.monotonic()
+                if remaining > 0:
+                    await asyncio.sleep(remaining)
+                self.next_request[provider] = time.monotonic() + (2 if provider == "himalayas" else 1)
+            if provider == "github":
+                async with self.locks[provider]:
+                    await pace()
+                # A different concurrent call may have discovered a global rate limit.
+                cooldown = self.cooldowns.get(provider)
+                if cooldown and cooldown[0] > time.time():
+                    return None, cooldown[1].model_copy(deep=True)
+            else:
+                await pace()
             try:
                 data = await self._json(url, params=params, headers=headers, max_bytes=max_bytes)
                 stamp = now()
@@ -284,28 +314,25 @@ class ExternalServices:
             metadata = RepositoryMetadata(full_name=data["full_name"], url=web_url(data["html_url"]), description=data.get("description"), language=data.get("language"), stars=data.get("stargazers_count", 0), forks=data.get("forks_count", 0), default_branch=data["default_branch"], pushed_at=data.get("pushed_at"), license=(data.get("license") or {}).get("spdx_id"))
         except (KeyError, ValueError, TypeError):
             return RepositoryResponse(repository=None, files=[], providers=[ProviderStatus(provider="github", status="error", detail="Invalid repository metadata")])
-        files, statuses = [], [status]
-        for path in paths:
+        async def read_file(path):
             content, file_status = await self.fetch("github", (owner.casefold(), repo.casefold(), path, metadata.default_branch), base + "/contents/" + quote(path, safe="/"), params={"ref": metadata.default_branch}, headers=headers, ttl=1800, max_bytes=200_000)
-            statuses.append(file_status)
             if content is None:
-                files.append(SourceFile(path=path, status="error", detail=file_status.detail or file_status.status))
-                continue
+                return SourceFile(path=path, status="error", detail=file_status.detail or file_status.status), file_status
             if content.get("type") != "file" or content.get("encoding") != "base64":
-                files.append(SourceFile(path=path, status="unsupported"))
-                continue
+                return SourceFile(path=path, status="unsupported"), file_status
             try:
                 if int(content.get("size", 65537)) > 65536:
-                    files.append(SourceFile(path=path, status="too_large"))
-                    continue
+                    return SourceFile(path=path, status="too_large"), file_status
                 decoded = base64.b64decode(content["content"], validate=False)
                 if len(decoded) > 65536:
-                    files.append(SourceFile(path=path, status="too_large"))
-                    continue
+                    return SourceFile(path=path, status="too_large"), file_status
                 text = decoded.decode("utf-8")
                 if "\x00" in text:
                     raise ValueError()
-                files.append(SourceFile(path=path, status="ok", content=text, sha=content["sha"], url=web_url(content.get("html_url"))))
+                return SourceFile(path=path, status="ok", content=text, sha=content["sha"], url=web_url(content.get("html_url"))), file_status
             except (KeyError, ValueError, TypeError, UnicodeError):
-                files.append(SourceFile(path=path, status="unsupported", detail="Only bounded UTF-8 source files are supported"))
+                return SourceFile(path=path, status="unsupported", detail="Only bounded UTF-8 source files are supported"), file_status
+        results = await asyncio.gather(*(read_file(path) for path in paths[:6]))
+        files = [file for file, _ in results]
+        statuses = [status, *[state for _, state in results]]
         return RepositoryResponse(repository=metadata, files=files, providers=statuses)
