@@ -30,7 +30,7 @@ export const App: React.FC = () => {
               <Route path="/career" element={<CareerNavigatorPage />} />
               <Route path="/learning" element={<LearningHubPage />} />
               <Route path="/jobs" element={<LiveJobExplorerPage />} />
-              <Route path="/interview" element={!import.meta.env.PROD || import.meta.env.VITE_ENABLE_INTERVIEWS === 'true' ? <MockInterviewPage /> : <Navigate to="/dashboard" replace />} />
+              <Route path="/interview" element={import.meta.env.VITE_ENABLE_INTERVIEWS !== 'false' ? <MockInterviewPage /> : <Navigate to="/dashboard" replace />} />
               <Route path="/mentor" element={<AiMentorPage />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Route>

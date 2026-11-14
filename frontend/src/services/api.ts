@@ -21,6 +21,7 @@ import type {
   SessionView,
   SessionCreated,
   ProfileResponse,
+  GithubAnalysisResponse,
 } from '../types';
 
 /**
@@ -108,8 +109,12 @@ async function request<T>(config: AxiosRequestConfig): Promise<T> {
 
 let healthRequest: Promise<HealthCheckResponse> | null = null;
 let statusRequest: Promise<SystemStatusResponse> | null = null;
+const sessionRequests = new Map<string, Promise<SessionView>>();
 
 export const api = {
+  importGithub(sessionId: string, target: string, paths: string[], signal?: AbortSignal): Promise<GithubAnalysisResponse> {
+    return request({method: 'POST', url: '/api/github/analyze', data: {session_id: sessionId, target, paths}, signal});
+  },
   getInterview(sessionId: string, signal?: AbortSignal): Promise<InterviewResponse> {
     return request({method: 'GET', url: '/api/interviews/current', params: {session_id: sessionId}, signal});
   },
@@ -146,11 +151,18 @@ export const api = {
   /**
    * Session Facade: Restore complete public state via GET /api/sessions/{session_id}
    */
-  async getSession(sessionId: string): Promise<SessionView> {
-    return request<SessionView>({
-      method: 'GET',
-      url: `/api/sessions/${sessionId}`,
-    });
+  async getSession(sessionId: string, token?: string): Promise<SessionView> {
+    const authorization = token || localStorage.getItem('maximus_session_token') || '';
+    const key = `${sessionId}:${authorization}`;
+    let pending = sessionRequests.get(key);
+    if (!pending) {
+      pending = request<SessionView>({
+        method: 'GET', url: `/api/sessions/${sessionId}`,
+        headers: {Authorization: `Bearer ${authorization}`},
+      }).finally(() => { sessionRequests.delete(key); });
+      sessionRequests.set(key, pending);
+    }
+    return pending;
   },
 
   /**
@@ -183,19 +195,19 @@ export const api = {
       method: 'POST',
       url: '/api/career/blueprint',
       data: { session_id: sessionId },
-      timeout: 25000,
+      timeout: 60000,
     });
   },
 
   /**
    * Profile Analysis: POST /api/profile/analyze
    */
-  async analyzeProfile(sessionId: string): Promise<ProfileResponse> {
+  async analyzeProfile(sessionId: string, signal?: AbortSignal): Promise<ProfileResponse> {
     return request<ProfileResponse>({
       method: 'POST',
-      url: '/api/profile/analyze',
+      url: '/api/profile/analyze', signal,
       data: { session_id: sessionId },
-      timeout: 25000,
+      timeout: 60000,
     });
   },
 
@@ -218,7 +230,7 @@ export const api = {
     return request<AssessmentResponse>({
       method: 'POST',
       url: `/api/v1/learners/${learnerId}/assessments`,
-      timeout: 25000,
+      timeout: 120000,
     });
   },
 
@@ -265,7 +277,7 @@ export const api = {
       method: 'POST',
       url: '/api/roadmap/generate',
       data: { session_id: learnerId, refresh },
-      timeout: 25000,
+      timeout: 120000,
     });
   },
 
@@ -396,7 +408,7 @@ export const api = {
         session_id: sessionId,
         message,
       },
-      timeout: 25000,
+      timeout: 60000,
     });
   },
 };

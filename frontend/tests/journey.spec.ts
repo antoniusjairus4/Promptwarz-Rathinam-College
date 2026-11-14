@@ -59,6 +59,7 @@ async function onboard(page: Page, skills = false) {
 test('career onboarding restores the actual session response and blueprint', async ({page}) => {
   const {state}=await mockBackend(page);
   await onboard(page);
+  await page.getByRole('button',{name:/Generate.*Blueprint/}).first().click();
   await expect(page.getByText('AI Career Blueprint',{exact:true})).toBeVisible();
   expect(state.learner.target_role).toBe('Wildlife Conservation Planner');
   expect(await page.evaluate(()=>localStorage.getItem('maximus_learner_id'))).toBe(state.learner.id);
@@ -185,4 +186,60 @@ test('health failure clears stale online status and retry recovers', async ({pag
   await page.route('**/api/health', route => route.fulfill({contentType:'application/json',body:'{"status":"ok"}'}));
   await page.getByRole('button',{name:'Refresh connection status'}).click();
   await expect(page.getByText('API Online', {exact:true})).toBeVisible();
+});
+
+test('onboarding does not wait for hidden AI generation', async ({page}) => {
+  const {requests}=await mockBackend(page);
+  await onboard(page,true);
+  await expect(page.getByRole('heading',{level:1})).toBeVisible();
+  expect(requests.filter(request=>request==='POST /api/career/blueprint')).toEqual([]);
+});
+
+test('failed restoration retains credentials and a coalesced retry restores the learner', async ({page}) => {
+  await mockBackend(page);
+  const created=responseFor('/api/sessions');
+  await page.goto('/onboarding');
+  await page.evaluate(({id,token})=>{localStorage.setItem('maximus_learner_id',id);localStorage.setItem('maximus_session_token',token);},{id:created.session_id,token:created.session_token});
+  let calls=0;
+  await page.route('**/api/sessions/*', async route=>{
+    calls++;
+    await route.fulfill({status:503,contentType:'application/json',body:'{"detail":"Temporary tunnel outage"}'});
+  });
+  await page.goto('/skills');
+  await expect(page.getByRole('alert').first()).toContainText('Session restoration failed');
+  expect(await page.evaluate(()=>Boolean(localStorage.getItem('maximus_session_token')))).toBe(true);
+  expect(calls).toBe(1);
+  await page.route('**/api/sessions/*',route=>route.fulfill({contentType:'application/json',body:JSON.stringify(created.session)}));
+  await page.getByRole('button',{name:'Retry session restoration',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Analyze Skill Profile',exact:true})).toBeEnabled();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  await page.route('**/api/sessions/*',route=>route.fulfill({status:404,contentType:'application/json',body:'{"detail":"Session missing"}'}));
+  await page.reload();
+  await expect.poll(()=>page.evaluate(()=>localStorage.getItem('maximus_session_token'))).toBe(null);
+  await expect(page.getByText('Restoring your saved learner session…',{exact:true})).toHaveCount(0);
+});
+
+test('GitHub import uses one session-linked request and restores real-shaped findings', async ({page})=>{
+  const {requests}=await mockBackend(page);
+  const imported=responseFor('/api/github/analyze');
+  imported.providers=[{provider:'github',status:'ok',cached:false}];
+  imported.repositories=[{repository:{full_name:'synthetic/portfolio',url:'https://github.com/synthetic/portfolio',description:'Synthetic UI fixture',language:'Python',stars:0,forks:0,default_branch:'main',pushed_at:null,license:null},tree_sha:'synthetic-tree',inspected_paths:['app.py'],architecture_paths:['app.py'],files:[],limitations:['Synthetic test fixture'],findings:[{label:'Python',statement:'Synthetic source observation; not verified competence',file_path:'app.py',source_url:'https://github.com/synthetic/portfolio/blob/main/app.py',sha:'synthetic-sha',excerpt:'Synthetic test fixture',verified:false}]}];
+  const created=responseFor('/api/sessions');
+  let count=0;
+  await page.route('**/api/github/analyze', async route=>{
+    count++;
+    expect(route.request().postDataJSON().session_id).toBe(created.session_id);
+    await route.fulfill({contentType:'application/json',body:JSON.stringify(imported)});
+  });
+  await onboard(page,true);
+  await page.goto('/skills');
+  await page.getByPlaceholder(/psf\/requests/).fill('https://github.com/antoniusjairus4/portfolio');
+  await page.getByRole('button',{name:'Analyze',exact:true}).click();
+  await expect(page.getByRole('region',{name:'Saved GitHub observations'})).toBeVisible();
+  expect(count).toBe(1);
+  expect(requests.filter(request=>request.includes('/integrations/github/'))).toEqual([]);
+  const saved={...created.session,github_repositories:imported.repositories};
+  await page.route('**/api/sessions/*',route=>route.fulfill({contentType:'application/json',body:JSON.stringify(saved)}));
+  await page.reload();
+  await expect(page.getByRole('region',{name:'Saved GitHub observations'})).toBeVisible();
 });

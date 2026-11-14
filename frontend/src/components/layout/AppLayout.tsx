@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar, navItems } from './Sidebar';
+import { useLearner } from '@/context/LearnerContext';
 import { Topbar } from './Topbar';
 import { MobileNav } from './MobileNav';
 
 export const AppLayout: React.FC = () => {
   const { pathname } = useLocation();
+  const { isRestoring, restorationError, refreshLearner } = useLearner();
   useEffect(() => {
     document.title = `${navItems.find(item => item.href === pathname)?.name || 'Career Onboarding'} — Maximus`;
     document.getElementById('main-content')?.focus({ preventScroll: true });
@@ -39,6 +41,8 @@ export const AppLayout: React.FC = () => {
         <Topbar onMenuToggle={() => setMobileMenuOpen(true)} />
 
         <main id="main-content" tabIndex={-1} className="flex-1 w-full px-5 sm:px-8 md:px-10 lg:px-12 py-6 md:py-8 bg-white dark:bg-black">
+          {isRestoring && <p role="status" className="mb-4 text-sm">Restoring your saved learner session…</p>}
+          {restorationError && <div role="alert" className="mb-4 rounded-lg border border-amber-500 p-3 text-sm">Session restoration failed: {restorationError} Your saved session credentials were retained. <button className="underline font-medium" onClick={() => { void refreshLearner(); }}>Retry session restoration</button></div>}
           <Outlet />
         </main>
       </div>

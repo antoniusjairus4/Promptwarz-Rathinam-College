@@ -8,7 +8,8 @@ test('live backend browser journey (no mocks)', async ({page}) => {
   await page.getByPlaceholder(/Distributed Systems Engineer/).fill('Python Backend Engineer');
   await page.getByRole('button',{name:'Continue to Workspace'}).click();
   await expect(page).toHaveURL(/dashboard/, {timeout:120000});
-  await expect(page.getByText('AI Career Blueprint',{exact:true})).toBeVisible();
+  await page.getByRole('button',{name:/Generate.*Blueprint/}).first().click();
+  await expect(page.getByText('AI Career Blueprint',{exact:true})).toBeVisible({timeout:120000});
   await page.goto('/arena');
   await page.getByRole('button',{name:/Generate.*Assessment/}).first().click();
   await expect(page.getByRole('radio').first()).toBeAttached({timeout:120000});

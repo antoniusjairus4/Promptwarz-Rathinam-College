@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { api, ApiClientError } from '@/services/api';
 import type {
   Learner,
@@ -10,6 +10,8 @@ import type {
   Blueprint,
   MentorMessage,
   ProfileAnalysis,
+  RepositoryInspection,
+  GithubAnalysisResponse,
 } from '@/types';
 
 interface LearnerContextType {
@@ -18,7 +20,11 @@ interface LearnerContextType {
   storageStatus: StorageStatus | null;
   blueprint: Blueprint | null;
   profileAnalysis: ProfileAnalysis | null;
-  analyzeProfile: () => Promise<void>;
+  analyzeProfile: (signal?: AbortSignal) => Promise<void>;
+  importGithub: (target: string, paths: string[], signal?: AbortSignal) => Promise<GithubAnalysisResponse>;
+  githubRepositories: RepositoryInspection[];
+  isRestoring: boolean;
+  restorationError: string | null;
   assessment: Assessment | null;
   assessmentResult: AssessmentResult | null;
   roadmap: Roadmap | null;
@@ -62,10 +68,21 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
   const [mentorMessages, setMentorMessages] = useState<MentorMessage[]>([]);
 
+  const [githubRepositories, setGithubRepositories] = useState<RepositoryInspection[]>([]);
+  const [isRestoring, setIsRestoring] = useState(false);
+  const [restorationError, setRestorationError] = useState<string | null>(null);
+  const mutationEpoch = useRef(0);
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const clearSession = useCallback(() => {
+    mutationEpoch.current++;
+    setGithubRepositories([]);
+    setRestorationError(null);
+    setIsRestoring(false);
+    setIsLoading(false);
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(LEARNER_ID_KEY);
     setSessionToken(null);
@@ -85,10 +102,12 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const refreshLearner = useCallback(async () => {
     if (!learnerId || !sessionToken) return;
 
+    const epoch = mutationEpoch.current;
     try {
-      setIsLoading(true);
-
-      const view = await api.getSession(learnerId);
+      setIsRestoring(true);
+      setRestorationError(null);
+      const view = await api.getSession(learnerId, sessionToken);
+      if (!mounted.current || epoch !== mutationEpoch.current) return;
       if (localStorage.getItem(LEARNER_ID_KEY) !== learnerId || localStorage.getItem(TOKEN_KEY) !== sessionToken) return;
       setLearner(view.learner);
       setBlueprint(view.blueprint ?? null);
@@ -97,23 +116,26 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setAssessmentResult(view.result ?? null);
       setRoadmap(view.roadmap ?? null);
       setMentorMessages(view.messages ?? []);
+      setGithubRepositories(view.github_repositories ?? []);
       setStorageStatus(view.storage);
       setError(null);
     } catch (err: unknown) {
+      if (!mounted.current || epoch !== mutationEpoch.current) return;
       if (localStorage.getItem(LEARNER_ID_KEY) !== learnerId || localStorage.getItem(TOKEN_KEY) !== sessionToken) return;
       if (err instanceof ApiClientError && (err.status === 401 || err.status === 404)) {
         // In-memory backend restarted or session token expired
         clearSession();
-      } else if (err instanceof Error) {
-        setError(err.message);
+      } else {
+        setRestorationError(err instanceof Error ? err.message : 'Session restoration failed. Retry without creating another profile.');
       }
     } finally {
-      setIsLoading(false);
+      if (mounted.current && localStorage.getItem(LEARNER_ID_KEY) === learnerId && localStorage.getItem(TOKEN_KEY) === sessionToken) setIsRestoring(false);
     }
   }, [learnerId, sessionToken, clearSession]);
 
   useEffect(() => {
-    refreshLearner();
+    if (!learner) void refreshLearner();
+    // A newly created session already contains its complete public state.
   }, [refreshLearner]);
 
   // Ignore responses after this provider unmounts.
@@ -135,6 +157,9 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, []);
 
   const onboard = async (data: OnboardingRequest) => {
+    mutationEpoch.current++;
+    setIsRestoring(false);
+    setRestorationError(null);
     setIsLoading(true);
     setError(null);
     try {
@@ -153,15 +178,8 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setProfileAnalysis(null);
       setStorageStatus(res.storage);
 
-      // Attempt to immediately trigger blueprint generation for a rich onboarding experience
-      try {
-        const bpRes = await api.createBlueprint(res.session_id);
-        if (bpRes?.blueprint) {
-          setBlueprint(bpRes.blueprint);
-        }
-      } catch {
-        // Blueprint can be generated on demand later
-      }
+      setGithubRepositories([]);
+      setRestorationError(null);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Onboarding request failed';
       setError(msg);
@@ -173,10 +191,12 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const generateBlueprint = async (): Promise<Blueprint> => {
     if (!learnerId) throw new Error('No active learner session found');
+    mutationEpoch.current++;
     setIsLoading(true);
     setError(null);
     try {
       const res = await api.createBlueprint(learnerId);
+      if (!isCurrentSession(learnerId, sessionToken)) return res.blueprint;
       setBlueprint(res.blueprint);
       setStorageStatus(res.storage);
       return res.blueprint;
@@ -191,10 +211,12 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const generateAssessment = async (): Promise<Assessment> => {
     if (!learnerId) throw new Error('No active learner session found');
+    mutationEpoch.current++;
     setIsLoading(true);
     setError(null);
     try {
       const res = await api.createAssessment(learnerId);
+      if (!isCurrentSession(learnerId, sessionToken)) return res.assessment;
       setAssessment(res.assessment);
       if (!res.assessment.submitted) { setAssessmentResult(null); setRoadmap(null); setProfileAnalysis(null); }
       setStorageStatus(res.storage);
@@ -233,10 +255,12 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (!learnerId) throw new Error('No active learner session found');
     if (!assessment) throw new Error('No active assessment to submit');
 
+    mutationEpoch.current++;
     setIsLoading(true);
     setError(null);
     try {
       const res = await api.submitAssessment(learnerId, assessment.id, answers);
+      if (!isCurrentSession(learnerId, sessionToken)) return res.result;
       setAssessmentResult(res.result);
       setStorageStatus(res.storage);
       await refreshLearner();
@@ -271,10 +295,12 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const generateRoadmap = async (): Promise<Roadmap> => {
     if (!learnerId) throw new Error('No active learner session found');
+    mutationEpoch.current++;
     setIsLoading(true);
     setError(null);
     try {
       const res = await api.createRoadmap(learnerId, Boolean(roadmap));
+      if (!isCurrentSession(learnerId, sessionToken)) return res.roadmap;
       setRoadmap(res.roadmap);
       setStorageStatus(res.storage);
       return res.roadmap;
@@ -308,10 +334,12 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const completeStep = async (stepId: string) => {
     if (!learnerId) throw new Error('No active learner session found');
+    mutationEpoch.current++;
     setIsLoading(true);
     setError(null);
     try {
       const res = await api.updateRoadmapStep(learnerId, stepId, true);
+      if (!isCurrentSession(learnerId, sessionToken)) return;
       setRoadmap(res.roadmap);
       setStorageStatus(res.storage);
     } catch (err: unknown) {
@@ -323,11 +351,35 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  const analyzeProfile = async () => {
-    if (!learnerId) throw new Error('Create a learner session before analyzing skills');
-    const response = await api.analyzeProfile(learnerId);
-    setProfileAnalysis(response.profile);
-    setStorageStatus(response.storage);
+  const isCurrentSession = (id: string, token: string | null) => mounted.current && localStorage.getItem(LEARNER_ID_KEY) === id && localStorage.getItem(TOKEN_KEY) === token;
+
+  const analyzeProfile = async (signal?: AbortSignal) => {
+    if (!learnerId || !learner) throw new Error('Restore your learner session before analyzing skills');
+    mutationEpoch.current++;
+    const response = await api.analyzeProfile(learnerId, signal);
+    if (!signal?.aborted && isCurrentSession(learnerId, sessionToken)) {
+      setProfileAnalysis(response.profile);
+      setStorageStatus(response.storage);
+    }
+  };
+
+  const importGithub = async (target: string, paths: string[], signal?: AbortSignal) => {
+    if (!learnerId || !learner) throw new Error('Restore your learner session before importing GitHub evidence');
+    mutationEpoch.current++;
+    const response = await api.importGithub(learnerId, target, paths, signal);
+    if (!signal?.aborted && isCurrentSession(learnerId, sessionToken)) {
+      setGithubRepositories(previous => {
+        const merged = new Map(previous.map(repo => [repo.repository.full_name.toLowerCase(), repo]));
+        response.repositories.forEach(repo => {
+          const key = repo.repository.full_name.toLowerCase();
+          if (repo.inspected_paths.length || !merged.has(key)) merged.set(key, repo);
+        });
+        return [...merged.values()].slice(-4);
+      });
+      if (response.repositories.some(repo => repo.inspected_paths.length)) setProfileAnalysis(null);
+      setStorageStatus(response.storage);
+    }
+    return response;
   };
 
   const addMentorMessage = (msg: MentorMessage) => {
@@ -343,6 +395,10 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         blueprint,
         profileAnalysis,
         analyzeProfile,
+        importGithub,
+        githubRepositories,
+        isRestoring,
+        restorationError,
         assessment,
         assessmentResult,
         roadmap,

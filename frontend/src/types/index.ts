@@ -96,7 +96,7 @@ export interface SessionView {
   learner: Learner;
   blueprint: Blueprint | null;
   profile_analysis: ProfileAnalysis | null;
-  github_repositories?: unknown[];
+  github_repositories?: RepositoryInspection[];
   assessment: Assessment | null;
   result: AssessmentResult | null;
   roadmap: Roadmap | null;
@@ -325,4 +325,15 @@ export interface SystemStatusResponse {
   mode: string;
   durable: boolean;
   reason?: string | null;
+}
+
+export interface SourceFinding {
+  label: string; statement: string; file_path: string; source_url: string; sha: string; excerpt: string; verified: false;
+}
+export interface RepositoryInspection {
+  repository: RepositoryMetadata; tree_sha: string | null; inspected_paths: string[];
+  architecture_paths: string[]; findings: SourceFinding[]; files?: SourceFile[]; limitations: string[];
+}
+export interface GithubAnalysisResponse {
+  session_id: string; repositories: RepositoryInspection[]; providers: ProviderStatus[]; storage: StorageStatus;
 }

@@ -91,16 +91,27 @@ test('live AI interview through the browser', async ({page,request}) => {
   await page.goto('/onboarding');
   await page.evaluate(({id,token})=>{localStorage.setItem('maximus_learner_id',id);localStorage.setItem('maximus_session_token',token);},{id:session.session_id,token:session.session_token});
   await page.goto('/interview');
-  await page.getByRole('button',{name:'Start interview',exact:true}).click();
+  const perform = async (name: string, operation: string) => {
+    const [response] = await Promise.all([
+      page.waitForResponse(response => new URL(response.url()).pathname === '/api/interviews/'+operation && response.request().method()==='POST', {timeout:65000}),
+      page.getByRole('button',{name,exact:true}).click(),
+    ]);
+    expect(response.status(), `Interview ${operation} must return genuine saved output`).toBe(200);
+    const result=await response.json();
+    console.log(`Real interview ${operation}: ${result.interview.questions.length} questions, ${result.interview.answers.length} answers, durable=${result.storage.durable}`);
+    return result.interview;
+  };
+  await perform('Start interview', 'start');
   for(let index=0;index<5;index++) {
-    await expect(page.getByText(new RegExp(`Question ${index+1} of 5`))).toBeVisible({timeout:65000});
+    await expect(page.getByText(new RegExp(`Question ${index+1} of 5`))).toBeVisible();
     await page.getByLabel('Your answer — review and edit before submitting').fill('In a hypothetical project I would clarify requirements, discuss tradeoffs, validate inputs, write focused tests and measure the outcome. I would explain uncertainty and ask for feedback. I have not done this in a real job.');
-    await page.getByRole('button',{name:'Submit approved answer'}).click();
-    await expect(page.getByRole('heading',{name:'Answer feedback',exact:true})).toBeVisible({timeout:65000});
-    if(index<4) await page.getByRole('button',{name:'Next Question',exact:true}).click();
+    const result=await perform('Submit approved answer', 'answer');
+    expect(result.answers).toHaveLength(index+1);
+    await expect(page.getByRole('heading',{name:'Answer feedback',exact:true})).toBeVisible();
+    if(index<4) await perform('Next Question', 'next');
   }
-  await page.getByRole('button',{name:'Generate interview summary'}).click();
-  await expect(page.getByRole('heading',{name:'Interview summary',exact:true})).toBeVisible({timeout:65000});
+  await perform('Generate interview summary', 'summary');
+  await expect(page.getByRole('heading',{name:'Interview summary',exact:true})).toBeVisible();
   await page.reload();
   await expect(page.getByRole('heading',{name:'Interview summary',exact:true})).toBeVisible();
 });

@@ -1,5 +1,5 @@
 import { safeExternalUrl } from '@/lib/urls';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   GitBranch,
@@ -20,71 +20,73 @@ import Editor from '@monaco-editor/react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { api, ApiClientError } from '@/services/api';
+import { api } from '@/services/api';
 import { useLearner } from '@/context/LearnerContext';
 import { useTheme } from '@/context/ThemeContext';
 import type { RepositoryResponse, SourceFile } from '@/types';
 
 export const SkillDnaPage: React.FC = () => {
-  const { learner, assessmentResult, refreshLearner, profileAnalysis, analyzeProfile } = useLearner();
+  const { learner, assessmentResult, githubRepositories, importGithub, isRestoring, restorationError, refreshLearner, profileAnalysis, analyzeProfile } = useLearner();
   const { actualTheme } = useTheme();
 
   // GitHub input state
   const [repoInput, setRepoInput] = useState('psf/requests');
   const [pathsInput, setPathsInput] = useState('README.md');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [repoData, setRepoData] = useState<RepositoryResponse | null>(null);
+  const [requestedRepoData, setRepoData] = useState<RepositoryResponse | null>(null);
   const [selectedFileIndex, setSelectedFileIndex] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Parse GitHub owner & repo from input (supports "owner/repo" or "https://github.com/owner/repo")
-  const parseRepo = (input: string): { owner: string; repo: string } | null => {
-    const trimmed = input.trim().replace(/\/+$/, '');
-    const urlMatch = trimmed.match(/github\.com\/([^/]+)\/([^/]+)/);
-    if (urlMatch) {
-      return { owner: urlMatch[1], repo: urlMatch[2].replace(/\.git$/, '') };
-    }
-    const slashParts = trimmed.split('/');
-    if (slashParts.length === 2 && slashParts[0] && slashParts[1]) {
-      return { owner: slashParts[0], repo: slashParts[1].replace(/\.git$/, '') };
-    }
-    return null;
-  };
+  const requestController = useRef<AbortController | null>(null);
+  const analyzing = useRef(false);
+  useEffect(() => {
+    setRepoData(null);
+    setErrorMessage(null);
+    setIsAnalyzing(false);
+    analyzing.current = false;
+    return () => { requestController.current?.abort(); };
+  }, [learner?.id]);
+  const savedRepository = githubRepositories[githubRepositories.length - 1];
+  const repoData: RepositoryResponse | null = requestedRepoData ?? (savedRepository
+    ? {repository: savedRepository.repository, files: savedRepository.files ?? [], providers: []} : null);
 
   const handleAnalyze = async () => {
-    const parsed = parseRepo(repoInput);
-    if (!parsed) {
-      setErrorMessage('Please enter a valid GitHub repository in "owner/repo" format (e.g. psf/requests).');
-      return;
-    }
-
-    const paths = pathsInput
-      .split(',')
-      .map((p) => p.trim())
-      .filter((p) => p.length > 0)
-      .slice(0, 3); // Max 3 paths per backend contract
-
-    setIsAnalyzing(true);
-    setErrorMessage(null);
+    if (analyzing.current) return;
+    const paths = pathsInput.split(',').map(path => path.trim()).filter(Boolean).slice(0, 3);
+    const controller = new AbortController();
+    requestController.current = controller;
+    analyzing.current = true; setIsAnalyzing(true); setErrorMessage(null);
     try {
-      const res = await api.analyzeGithub(parsed.owner, parsed.repo, paths);
-      setRepoData(res);
       if (learner) {
-        await api.saveGithubEvidence(learner.id, `${parsed.owner}/${parsed.repo}`);
-        await refreshLearner();
+        const response = await importGithub(repoInput.trim(), paths, controller.signal);
+        if (controller.signal.aborted) return;
+        const repository = response.repositories[0];
+        if (repository) setRepoData({repository: repository.repository, files: repository.files ?? [], providers: response.providers});
+        const failures = response.providers.filter(provider => provider.status !== 'ok');
+        if (failures.length) setErrorMessage(failures.map(provider => provider.detail || `GitHub ${provider.status}`).filter((value,index,all) => all.indexOf(value)===index).join('; '));
+        else if (!repository) setErrorMessage('No public non-fork repositories found. Try a public owner/repository URL.');
+      } else {
+        const match = repoInput.trim().replace(/\/+$/, '').match(/^(?:https:\/\/github\.com\/)?([A-Za-z0-9-]+)\/([A-Za-z0-9_.-]+)$/);
+        if (!match) throw new Error('Create or restore a learner session to import a GitHub username, or enter a public owner/repository URL to inspect it.');
+        const response = await api.analyzeGithub(match[1], match[2].replace(/\.git$/, ''), paths);
+        if (controller.signal.aborted) return;
+        setRepoData(response);
       }
       setSelectedFileIndex(0);
-    } catch (err: unknown) {
-      if (err instanceof ApiClientError) {
-        setErrorMessage(err.message);
-      } else if (err instanceof Error) {
-        setErrorMessage(err.message);
-      } else {
-        setErrorMessage('Failed to analyze repository.');
-      }
+    } catch (error: unknown) {
+      if (!controller.signal.aborted) setErrorMessage(error instanceof Error ? error.message : 'GitHub import failed. Retry without restarting onboarding.');
     } finally {
-      setIsAnalyzing(false);
+      if (!controller.signal.aborted) { analyzing.current = false; setIsAnalyzing(false); }
     }
+  };
+
+  const handleProfile = async () => {
+    if (analyzing.current) return;
+    const controller = new AbortController(); requestController.current = controller;
+    analyzing.current = true; setIsAnalyzing(true); setErrorMessage(null);
+    try { await analyzeProfile(controller.signal); }
+    catch (error: unknown) { if (!controller.signal.aborted) setErrorMessage(error instanceof Error ? error.message : 'AI profile unavailable; retry later.'); }
+    finally { if (!controller.signal.aborted) { analyzing.current = false; setIsAnalyzing(false); } }
   };
 
   const selectedFile: SourceFile | undefined = repoData?.files?.[selectedFileIndex];
@@ -149,7 +151,7 @@ export const SkillDnaPage: React.FC = () => {
             </CardDescription>
           </div>
           <span className="text-xs font-mono text-[#6B7280] dark:text-[#A3A3A3]">
-            API v1 /integrations/github
+            Session-linked public GitHub evidence
           </span>
         </div>
 
@@ -157,7 +159,7 @@ export const SkillDnaPage: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
           <div className="sm:col-span-6 space-y-1.5">
             <label className="text-xs font-medium text-[#4B5563] dark:text-[#A3A3A3]">
-              GitHub Public Repository (owner/repo or URL)
+              GitHub username or public repository URL
             </label>
             <input
               type="text"
@@ -373,11 +375,11 @@ export const SkillDnaPage: React.FC = () => {
       <Card className="p-6 space-y-3">
         <h2 className="text-xl font-semibold">AI Skill Profile</h2>
         <p className="text-sm">Analyze your declared skills, saved repository observations, and quiz history. These are inferences, not independently verified qualifications.</p>
-        <Button disabled={!learner || isAnalyzing} onClick={async () => {
-          setIsAnalyzing(true); setErrorMessage(null);
-          try { await analyzeProfile(); } catch (error) { setErrorMessage(error instanceof Error ? error.message : 'Profile analysis failed'); }
-          finally { setIsAnalyzing(false); }
-        }}>Analyze Skill Profile</Button>
+        {isRestoring && <p role="status">Restoring your saved learner profile…</p>}
+        {!learner && !isRestoring && <p className="text-sm">{restorationError ? 'Session restoration failed. Retry your saved session below; do not restart onboarding.' : 'Create a learner profile before requesting personalized AI analysis.'} <button className="underline" onClick={() => { void refreshLearner(); }}>Retry saved session</button></p>}
+        {isAnalyzing && <p role="status">Analyzing with the backend. GitHub returns available observations within its bounded deadline; AI may take up to a minute. You can navigate away to cancel waiting.</p>}
+        <Button disabled={!learner || isAnalyzing || isRestoring} onClick={() => { void handleProfile(); }}>Analyze Skill Profile</Button>
+        {savedRepository && <section className="space-y-2" aria-label="Saved GitHub observations"><h3 className="font-semibold">Saved repository observations</h3><ul className="list-disc pl-5">{savedRepository.findings.map((finding,index) => <li key={`${finding.sha}-${finding.label}-${index}`}><a className="underline" href={safeExternalUrl(finding.source_url)} target="_blank" rel="noopener noreferrer">{finding.label} — {finding.file_path}</a>: {finding.statement}</li>)}</ul><p className="text-sm">Saved with your session; these observations do not verify authorship or proficiency.</p></section>}
         {profileAnalysis && <div role="status" className="space-y-2">
           <p>{profileAnalysis.summary}</p>
           <p>Inferred skills: {profileAnalysis.inferred_skills.join(', ') || 'No inference available'}</p>
